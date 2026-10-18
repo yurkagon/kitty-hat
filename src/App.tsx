@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from "react";
+import { Fragment, useEffect, useReducer, useState } from "react";
 import persons from "../data/persons/data.json";
 import { teamNames } from "../data/teams";
 import { Avatar, Button, Icon, Modal, Scoreboard, Stepper } from "./components";
@@ -1039,34 +1039,44 @@ export const App = () => {
           }
           onClose={() => setPersonTarget(null)}
         >
-          <p>Обери картинку для гравця. Ім’я введи в команді.</p>
+          <p>Ім’я людини підставиться автоматично. Його можна змінити в команді.</p>
           <div className="person-options">
-            {persons.map((person, index) => (
-              <button
-                type="button"
-                key={person.img}
-                aria-label={`Аватар ${index + 1}`}
-                onClick={() => {
-                  if (personTarget.playerId) {
-                    dispatch({
-                      type: "UPDATE_PLAYER",
-                      teamId: personTarget.teamId,
-                      playerId: personTarget.playerId,
-                      patch: { avatar: person.img },
-                    });
-                  } else {
-                    dispatch({
-                      type: "ADD_PLAYER",
-                      teamId: personTarget.teamId,
-                      player: makePlayer(person),
-                    });
-                  }
-                  setPersonTarget(null);
-                }}
-              >
-                <Avatar avatar={person.img} />
-              </button>
-            ))}
+            {persons.map((person, index) => {
+              const label =
+                index === 0 ? "Хлопець" : index === 1 ? "Дівчина" : null;
+              return (
+                <Fragment key={person.img}>
+                  {index === 2 && <hr className="avatar-divider" />}
+                  <button
+                    type="button"
+                    aria-label={label ?? `Аватар ${index + 1}`}
+                    onClick={() => {
+                      if (personTarget.playerId) {
+                        dispatch({
+                          type: "UPDATE_PLAYER",
+                          teamId: personTarget.teamId,
+                          playerId: personTarget.playerId,
+                          patch: {
+                            avatar: person.img,
+                            ...(label ? {} : { name: person.name }),
+                          },
+                        });
+                      } else {
+                        dispatch({
+                          type: "ADD_PLAYER",
+                          teamId: personTarget.teamId,
+                          player: makePlayer(person),
+                        });
+                      }
+                      setPersonTarget(null);
+                    }}
+                  >
+                    <Avatar avatar={person.img} />
+                    {label && <span>{label}</span>}
+                  </button>
+                </Fragment>
+              );
+            })}
           </div>
         </Modal>
       )}

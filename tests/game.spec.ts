@@ -14,7 +14,10 @@ const addPlayer = async (
     .click();
   await page
     .getByRole("dialog")
-    .getByRole("button", { name: `Аватар ${avatar}`, exact: true })
+    .getByRole("button", {
+      name: avatar === 1 ? "Хлопець" : avatar === 2 ? "Дівчина" : `Аватар ${avatar}`,
+      exact: true,
+    })
     .click();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   if (name !== undefined)
@@ -299,11 +302,14 @@ test("empty teams, suggested and custom names, modal cancellation and removal pe
     page.getByRole("button", { name: "Закрити", exact: true }),
   ).toBeFocused();
   await page.keyboard.press("Tab");
-  await expect(page.locator(".person-options")).toHaveText("");
+  await expect(page.locator(".person-options button span")).toHaveText([
+    "Хлопець",
+    "Дівчина",
+  ]);
   await expect(
     page
       .getByRole("dialog")
-      .getByRole("button", { name: "Аватар 1", exact: true }),
+      .getByRole("button", { name: "Хлопець", exact: true }),
   ).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(
@@ -346,7 +352,7 @@ for (const { name, avatar, choice } of [
       name: "Ім’я гравця 1, команда 1",
       exact: true,
     });
-    await expect(firstName).toHaveValue("");
+    await expect(firstName).toHaveValue(name);
     await firstName.fill(`${name} у грі`);
     await expect(page.locator(".player-input img").first()).toHaveAttribute(
       "src",
@@ -370,7 +376,7 @@ for (const { name, avatar, choice } of [
       .click();
     await page
       .getByRole("dialog")
-      .getByRole("button", { name: "Аватар 1", exact: true })
+      .getByRole("button", { name: "Хлопець", exact: true })
       .click();
     await expect(
       page.getByRole("textbox", {

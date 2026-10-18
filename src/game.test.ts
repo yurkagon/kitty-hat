@@ -96,11 +96,11 @@ describe("party lifecycle", () => {
     expect(isGameState({ ...state, stage: "settings" })).toBe(false);
   });
 
-  it("ships every catalog portrait and leaves player names empty", () => {
+  it("ships every catalog portrait and fills names only for people", () => {
     expect(new Set(persons.map((person) => person.img)).size).toBe(
       persons.length,
     );
-    for (const person of persons) {
+    for (const [index, person] of persons.entries()) {
       expect(person.name.trim()).not.toBe("");
       expect(
         existsSync(
@@ -108,7 +108,7 @@ describe("party lifecycle", () => {
         ),
       ).toBe(true);
       expect(makePlayer(person)).toMatchObject({
-        name: "",
+        name: index < 2 ? "" : person.name,
         avatar: person.img,
       });
     }

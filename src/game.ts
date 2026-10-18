@@ -91,7 +91,7 @@ const makeId = () =>
 
 export const makePlayer = (person: (typeof persons)[number]): Player => ({
   id: makeId(),
-  name: "",
+  name: person.img.startsWith("cat-generic-") ? "" : person.name,
   avatar: person.img,
 });
 
