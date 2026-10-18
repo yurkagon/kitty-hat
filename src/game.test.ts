@@ -76,7 +76,7 @@ describe("party lifecycle", () => {
       state,
     );
     const player = makePlayer(persons[1]);
-    expect(player).toMatchObject({ name: "", avatar: "cat-woman.webp" });
+    expect(player).toMatchObject({ name: "", avatar: "cat-generic-woman.webp" });
     state = gameReducer(state, {
       type: "ADD_PLAYER",
       teamId: state.teams[0].id,

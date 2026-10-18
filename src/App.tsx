@@ -160,7 +160,7 @@ export const App = () => {
         <section className="home-screen">
           <div className="hero-art">
             <img
-              src="/art/hat.webp"
+              src={`${import.meta.env.BASE_URL}art/hat.webp`}
               alt="Мальований зелений капелюх із паперовими записками"
               width="440"
               height="410"
@@ -336,7 +336,19 @@ export const App = () => {
                 {item.players.map((player, playerIndex) => (
                   <div className="player-editor" key={player.id}>
                     <div className="player-input">
-                      <Avatar avatar={player.avatar} />
+                      <button
+                        type="button"
+                        className="avatar-button"
+                        aria-label={`Змінити аватар гравця ${playerIndex + 1}, команда ${teamIndex + 1}`}
+                        onClick={() =>
+                          setPersonTarget({
+                            teamId: item.id,
+                            playerId: player.id,
+                          })
+                        }
+                      >
+                        <Avatar avatar={player.avatar} />
+                      </button>
                       <input
                         aria-label={`Ім’я гравця ${playerIndex + 1}, команда ${teamIndex + 1}`}
                         placeholder={`Ім’я гравця ${playerIndex + 1}`}
@@ -367,19 +379,6 @@ export const App = () => {
                         <Icon name="minus" size={18} />
                       </button>
                     </div>
-                    <button
-                      type="button"
-                      className="text-button change-person"
-                      aria-label={`Змінити аватар гравця ${playerIndex + 1}, команда ${teamIndex + 1}`}
-                      onClick={() =>
-                        setPersonTarget({
-                          teamId: item.id,
-                          playerId: player.id,
-                        })
-                      }
-                    >
-                      Змінити аватар
-                    </button>
                   </div>
                 ))}
                 <button
@@ -926,7 +925,7 @@ export const App = () => {
       <section className="finish-screen">
         <img
           className="victory-art"
-          src="/art/victory.webp"
+          src={`${import.meta.env.BASE_URL}art/victory.webp`}
           alt="Золотий капелюх-трофей із конфеті"
           width="220"
           height="220"

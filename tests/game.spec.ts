@@ -327,11 +327,11 @@ test("empty teams, suggested and custom names, modal cancellation and removal pe
 });
 
 for (const { name, avatar, choice } of [
-  { name: "Андрій", avatar: "cat-andrii", choice: 3 },
-  { name: "Назар", avatar: "cat-nazar", choice: 4 },
-  { name: "Артур", avatar: "cat-artur", choice: 5 },
-  { name: "Юра", avatar: "cat-yura", choice: 6 },
-  { name: "Ілона", avatar: "cat-ilona", choice: 7 },
+  { name: "Андрій", avatar: "cat-andrii", choice: 5 },
+  { name: "Назар", avatar: "cat-nazar", choice: 6 },
+  { name: "Артур", avatar: "cat-artur", choice: 7 },
+  { name: "Юра", avatar: "cat-yura", choice: 8 },
+  { name: "Ілона", avatar: "cat-ilona", choice: 9 },
 ]) {
   test(`${name}: catalog selection, editable name, restore and playing portrait`, async ({
     page,
@@ -501,7 +501,7 @@ test("visual evidence across mobile and desktop screens", async ({ page }) => {
   await capture("persons-320");
   const lastChoice = page
     .getByRole("dialog")
-    .getByRole("button", { name: "Аватар 7", exact: true });
+    .getByRole("button", { name: "Аватар 9", exact: true });
   await lastChoice.scrollIntoViewIfNeeded();
   await expect(lastChoice).toBeInViewport();
   await capture("persons-bottom-320");

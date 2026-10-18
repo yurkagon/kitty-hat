@@ -21,7 +21,17 @@ pnpm build
 pnpm preview
 ```
 
-The production website is the `dist/` directory and can be served by a static host. Hosting is not configured in this project.
+The production website is the `dist/` directory. Development and preview use the `/kitty-hat/` path so assets match the GitHub Pages deployment.
+
+## Publish to GitHub Pages
+
+```sh
+pnpm deploy
+```
+
+This builds locally and uses [gh-pages](https://github.com/tschaub/gh-pages) to publish only `dist/` to the `gh-pages` branch of `origin`. A `.nojekyll` file bypasses Jekyll. Git access to `git@github.com:yurkagon/kitty-hat.git` is required.
+
+The site is [yurkagon.github.io/kitty-hat](https://yurkagon.github.io/kitty-hat/). In repository Settings → Pages, use **Deploy from a branch**, branch **gh-pages**, folder **/ (root)**. Repeat `pnpm deploy` after changes to publish a fresh build.
 
 ## Browser tests
 
@@ -34,7 +44,7 @@ Tests cover a complete party, empty and partial setups, suggested/custom team na
 
 ## Play
 
-1. Choose suggested team names or enter your own. New teams have no players: use “Додати гравця” to choose an avatar, then enter the player's name manually. The picker shows only images; catalog names stay in the data. Changing an avatar preserves the entered name. Add at least two players per team; the chosen portrait appears on that player's turn.
+1. Choose suggested team names or enter your own. New teams have no players: use “Додати гравця” to choose an avatar, then enter the player's name manually. The picker starts with two fictional base avatars, a male cat and a female cat. It shows only images; catalog names stay in the data. Tap the player's avatar to change it while preserving the entered name. Add at least two players per team; the chosen portrait appears on that player's turn.
 2. Choose words per player (1–20), turn duration (15–180 seconds), skip policy and timeout policy.
 3. Pass the phone so each player privately writes their words or short phrases.
 4. Play three rounds using the same notes: explanation, mime, then one-word clues.
@@ -57,6 +67,8 @@ data/
   persons/
     data.json
     img/
+      cat-generic-man.webp
+      cat-generic-woman.webp
       cat-man.webp
       cat-woman.webp
       cat-andrii.webp
@@ -77,6 +89,8 @@ data/
       cat-levko.webp
       cat-rozaliia.webp
       cat-nastia.webp
+      cat-yehor.webp
+      cat-robert.webp
   teams.ts
 ```
 
@@ -84,6 +98,8 @@ data/
 
 ```json
 [
+  { "name": "Базовий кіт", "img": "cat-generic-man.webp" },
+  { "name": "Базова кішка", "img": "cat-generic-woman.webp" },
   { "name": "Кирил", "img": "cat-man.webp" },
   { "name": "Квітка", "img": "cat-woman.webp" },
   { "name": "Андрій", "img": "cat-andrii.webp" },
@@ -103,7 +119,9 @@ data/
   { "name": "Юра", "img": "cat-yura-2.webp" },
   { "name": "Левко", "img": "cat-levko.webp" },
   { "name": "Розалія", "img": "cat-rozaliia.webp" },
-  { "name": "Настя", "img": "cat-nastia.webp" }
+  { "name": "Настя", "img": "cat-nastia.webp" },
+  { "name": "Єгор", "img": "cat-yehor.webp" },
+  { "name": "Роберт", "img": "cat-robert.webp" }
 ]
 ```
 
@@ -115,4 +133,4 @@ The two Андрій entries, the two Юра entries, the two Валерія ent
 
 The design follows [Impeccable](https://github.com/pbakaus/impeccable), installed locally at `.agents/skills/impeccable/`, and the code follows [Ponytail](https://github.com/DietrichGebert/ponytail) full mode. `PRODUCT.md`, `SURFACE.md` and `DESIGN.md` document product and design decisions. The local Impeccable skill is available to Codex on the next turn.
 
-Twenty-two transparent illustrations were generated using the built-in ImageGen tool and optimized into WebP: the hat and victory trophy in `public/art/`, plus twenty cat portraits based on user-provided photos in `data/persons/img/`. Exact prompts are in `art-prompts.json` and asset sidecars. Self-hosted Comfortaa and Nunito Sans fonts include their OFL licenses in `public/fonts/`.
+Twenty-six transparent illustrations were generated using the built-in ImageGen tool and optimized into WebP: the hat and victory trophy in `public/art/`, plus twenty-four cat portraits (twenty-two based on user-provided photos and two fictional base avatars) in `data/persons/img/`. Exact prompts are in `art-prompts.json` and asset sidecars. Self-hosted Comfortaa and Nunito Sans fonts include their OFL licenses in `public/fonts/`.

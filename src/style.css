@@ -453,9 +453,16 @@ main {
   font-size: 14px;
   margin: 16px 0;
 }
-.change-person {
-  margin-left: 64px;
-  font-size: 13px;
+.avatar-button {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
 }
 .person-options {
   display: grid;
