@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.tsbuildinfo
+test-results/
+playwright-report/
+.agents/
+.impeccable/*
+!.impeccable/design.json
+!.impeccable/surfaces/

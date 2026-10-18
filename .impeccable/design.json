@@ -1,0 +1,584 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-18T15:26:46.248702Z",
+  "title": "Design System: Капелюх",
+  "extensions": {
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Cream Paper",
+        "tonalRamp": [
+          "oklch(0.150 0.0155 86.43)",
+          "oklch(0.264 0.0155 86.43)",
+          "oklch(0.379 0.0155 86.43)",
+          "oklch(0.493 0.0155 86.43)",
+          "oklch(0.607 0.0155 86.43)",
+          "oklch(0.721 0.0155 86.43)",
+          "oklch(0.836 0.0155 86.43)",
+          "oklch(0.950 0.0155 86.43)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Forest Ink",
+        "tonalRamp": [
+          "oklch(0.150 0.0428 160.04)",
+          "oklch(0.264 0.0428 160.04)",
+          "oklch(0.379 0.0428 160.04)",
+          "oklch(0.493 0.0428 160.04)",
+          "oklch(0.607 0.0428 160.04)",
+          "oklch(0.721 0.0428 160.04)",
+          "oklch(0.836 0.0428 160.04)",
+          "oklch(0.950 0.0428 160.04)"
+        ]
+      },
+      "green": {
+        "role": "primary",
+        "displayName": "Forest Green",
+        "tonalRamp": [
+          "oklch(0.150 0.0605 157.96)",
+          "oklch(0.264 0.0605 157.96)",
+          "oklch(0.379 0.0605 157.96)",
+          "oklch(0.493 0.0605 157.96)",
+          "oklch(0.607 0.0605 157.96)",
+          "oklch(0.721 0.0605 157.96)",
+          "oklch(0.836 0.0605 157.96)",
+          "oklch(0.950 0.0605 157.96)"
+        ]
+      },
+      "green-hover": {
+        "role": "primary",
+        "displayName": "Deep Forest Hover",
+        "tonalRamp": [
+          "oklch(0.150 0.0544 158.13)",
+          "oklch(0.264 0.0544 158.13)",
+          "oklch(0.379 0.0544 158.13)",
+          "oklch(0.493 0.0544 158.13)",
+          "oklch(0.607 0.0544 158.13)",
+          "oklch(0.721 0.0544 158.13)",
+          "oklch(0.836 0.0544 158.13)",
+          "oklch(0.950 0.0544 158.13)"
+        ]
+      },
+      "green-light": {
+        "role": "primary",
+        "displayName": "Light Sage",
+        "tonalRamp": [
+          "oklch(0.150 0.0235 122.74)",
+          "oklch(0.264 0.0235 122.74)",
+          "oklch(0.379 0.0235 122.74)",
+          "oklch(0.493 0.0235 122.74)",
+          "oklch(0.607 0.0235 122.74)",
+          "oklch(0.721 0.0235 122.74)",
+          "oklch(0.836 0.0235 122.74)",
+          "oklch(0.950 0.0235 122.74)"
+        ]
+      },
+      "coral": {
+        "role": "secondary",
+        "displayName": "Coral",
+        "tonalRamp": [
+          "oklch(0.150 0.1573 31.22)",
+          "oklch(0.264 0.1573 31.22)",
+          "oklch(0.379 0.1573 31.22)",
+          "oklch(0.493 0.1573 31.22)",
+          "oklch(0.607 0.1573 31.22)",
+          "oklch(0.721 0.1573 31.22)",
+          "oklch(0.836 0.1573 31.22)",
+          "oklch(0.950 0.1573 31.22)"
+        ]
+      },
+      "coral-light": {
+        "role": "secondary",
+        "displayName": "Soft Coral",
+        "tonalRamp": [
+          "oklch(0.150 0.0367 48.29)",
+          "oklch(0.264 0.0367 48.29)",
+          "oklch(0.379 0.0367 48.29)",
+          "oklch(0.493 0.0367 48.29)",
+          "oklch(0.607 0.0367 48.29)",
+          "oklch(0.721 0.0367 48.29)",
+          "oklch(0.836 0.0367 48.29)",
+          "oklch(0.950 0.0367 48.29)"
+        ]
+      },
+      "coral-ink": {
+        "role": "secondary",
+        "displayName": "Coral Ink",
+        "tonalRamp": [
+          "oklch(0.150 0.1186 33.85)",
+          "oklch(0.264 0.1186 33.85)",
+          "oklch(0.379 0.1186 33.85)",
+          "oklch(0.493 0.1186 33.85)",
+          "oklch(0.607 0.1186 33.85)",
+          "oklch(0.721 0.1186 33.85)",
+          "oklch(0.836 0.1186 33.85)",
+          "oklch(0.950 0.1186 33.85)"
+        ]
+      },
+      "yellow": {
+        "role": "tertiary",
+        "displayName": "Butter Yellow",
+        "tonalRamp": [
+          "oklch(0.150 0.0764 86.29)",
+          "oklch(0.264 0.0764 86.29)",
+          "oklch(0.379 0.0764 86.29)",
+          "oklch(0.493 0.0764 86.29)",
+          "oklch(0.607 0.0764 86.29)",
+          "oklch(0.721 0.0764 86.29)",
+          "oklch(0.836 0.0764 86.29)",
+          "oklch(0.950 0.0764 86.29)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted Olive",
+        "tonalRamp": [
+          "oklch(0.150 0.0312 128.15)",
+          "oklch(0.264 0.0312 128.15)",
+          "oklch(0.379 0.0312 128.15)",
+          "oklch(0.493 0.0312 128.15)",
+          "oklch(0.607 0.0312 128.15)",
+          "oklch(0.721 0.0312 128.15)",
+          "oklch(0.836 0.0312 128.15)",
+          "oklch(0.950 0.0312 128.15)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Paper Line",
+        "tonalRamp": [
+          "oklch(0.150 0.0232 98.68)",
+          "oklch(0.264 0.0232 98.68)",
+          "oklch(0.379 0.0232 98.68)",
+          "oklch(0.493 0.0232 98.68)",
+          "oklch(0.607 0.0232 98.68)",
+          "oklch(0.721 0.0232 98.68)",
+          "oklch(0.836 0.0232 98.68)",
+          "oklch(0.950 0.0232 98.68)"
+        ]
+      },
+      "control-paper": {
+        "role": "neutral",
+        "displayName": "Control Paper",
+        "tonalRamp": [
+          "oklch(0.150 0.0142 84.58)",
+          "oklch(0.264 0.0142 84.58)",
+          "oklch(0.379 0.0142 84.58)",
+          "oklch(0.493 0.0142 84.58)",
+          "oklch(0.607 0.0142 84.58)",
+          "oklch(0.721 0.0142 84.58)",
+          "oklch(0.836 0.0142 84.58)",
+          "oklch(0.950 0.0142 84.58)"
+        ]
+      },
+      "action-paper": {
+        "role": "neutral",
+        "displayName": "Action Paper",
+        "tonalRamp": [
+          "oklch(0.150 0.0171 84.59)",
+          "oklch(0.264 0.0171 84.59)",
+          "oklch(0.379 0.0171 84.59)",
+          "oklch(0.493 0.0171 84.59)",
+          "oklch(0.607 0.0171 84.59)",
+          "oklch(0.721 0.0171 84.59)",
+          "oklch(0.836 0.0171 84.59)",
+          "oklch(0.950 0.0171 84.59)"
+        ]
+      },
+      "slip-paper": {
+        "role": "neutral",
+        "displayName": "Slip Paper",
+        "tonalRamp": [
+          "oklch(0.150 0.0110 89.72)",
+          "oklch(0.264 0.0110 89.72)",
+          "oklch(0.379 0.0110 89.72)",
+          "oklch(0.493 0.0110 89.72)",
+          "oklch(0.607 0.0110 89.72)",
+          "oklch(0.721 0.0110 89.72)",
+          "oklch(0.836 0.0110 89.72)",
+          "oklch(0.950 0.0110 89.72)"
+        ]
+      },
+      "team-paper": {
+        "role": "neutral",
+        "displayName": "Team Paper",
+        "tonalRamp": [
+          "oklch(0.150 0.0228 98.65)",
+          "oklch(0.264 0.0228 98.65)",
+          "oklch(0.379 0.0228 98.65)",
+          "oklch(0.493 0.0228 98.65)",
+          "oklch(0.607 0.0228 98.65)",
+          "oklch(0.721 0.0228 98.65)",
+          "oklch(0.836 0.0228 98.65)",
+          "oklch(0.950 0.0228 98.65)"
+        ]
+      },
+      "team-peach": {
+        "role": "neutral",
+        "displayName": "Team Peach",
+        "tonalRamp": [
+          "oklch(0.150 0.0243 67.52)",
+          "oklch(0.264 0.0243 67.52)",
+          "oklch(0.379 0.0243 67.52)",
+          "oklch(0.493 0.0243 67.52)",
+          "oklch(0.607 0.0243 67.52)",
+          "oklch(0.721 0.0243 67.52)",
+          "oklch(0.836 0.0243 67.52)",
+          "oklch(0.950 0.0243 67.52)"
+        ]
+      },
+      "team-lilac": {
+        "role": "neutral",
+        "displayName": "Team Lilac",
+        "tonalRamp": [
+          "oklch(0.150 0.0206 311.08)",
+          "oklch(0.264 0.0206 311.08)",
+          "oklch(0.379 0.0206 311.08)",
+          "oklch(0.493 0.0206 311.08)",
+          "oklch(0.607 0.0206 311.08)",
+          "oklch(0.721 0.0206 311.08)",
+          "oklch(0.836 0.0206 311.08)",
+          "oklch(0.950 0.0206 311.08)"
+        ]
+      },
+      "team-sage": {
+        "role": "neutral",
+        "displayName": "Team Sage",
+        "tonalRamp": [
+          "oklch(0.150 0.0214 127.40)",
+          "oklch(0.264 0.0214 127.40)",
+          "oklch(0.379 0.0214 127.40)",
+          "oklch(0.493 0.0214 127.40)",
+          "oklch(0.607 0.0214 127.40)",
+          "oklch(0.721 0.0214 127.40)",
+          "oklch(0.836 0.0214 127.40)",
+          "oklch(0.950 0.0214 127.40)"
+        ]
+      },
+      "team-butter": {
+        "role": "neutral",
+        "displayName": "Team Butter",
+        "tonalRamp": [
+          "oklch(0.150 0.0416 88.80)",
+          "oklch(0.264 0.0416 88.80)",
+          "oklch(0.379 0.0416 88.80)",
+          "oklch(0.493 0.0416 88.80)",
+          "oklch(0.607 0.0416 88.80)",
+          "oklch(0.721 0.0416 88.80)",
+          "oklch(0.836 0.0416 88.80)",
+          "oklch(0.950 0.0416 88.80)"
+        ]
+      },
+      "team-blue": {
+        "role": "neutral",
+        "displayName": "Team Blue",
+        "tonalRamp": [
+          "oklch(0.150 0.0111 211.04)",
+          "oklch(0.264 0.0111 211.04)",
+          "oklch(0.379 0.0111 211.04)",
+          "oklch(0.493 0.0111 211.04)",
+          "oklch(0.607 0.0111 211.04)",
+          "oklch(0.721 0.0111 211.04)",
+          "oklch(0.836 0.0111 211.04)",
+          "oklch(0.950 0.0111 211.04)"
+        ]
+      },
+      "score-paper": {
+        "role": "neutral",
+        "displayName": "Score Paper",
+        "tonalRamp": [
+          "oklch(0.150 0.0173 103.16)",
+          "oklch(0.264 0.0173 103.16)",
+          "oklch(0.379 0.0173 103.16)",
+          "oklch(0.493 0.0173 103.16)",
+          "oklch(0.607 0.0173 103.16)",
+          "oklch(0.721 0.0173 103.16)",
+          "oklch(0.836 0.0173 103.16)",
+          "oklch(0.950 0.0173 103.16)"
+        ]
+      },
+      "field-line": {
+        "role": "neutral",
+        "displayName": "Field Line",
+        "tonalRamp": [
+          "oklch(0.150 0.0257 104.47)",
+          "oklch(0.264 0.0257 104.47)",
+          "oklch(0.379 0.0257 104.47)",
+          "oklch(0.493 0.0257 104.47)",
+          "oklch(0.607 0.0257 104.47)",
+          "oklch(0.721 0.0257 104.47)",
+          "oklch(0.836 0.0257 104.47)",
+          "oklch(0.950 0.0257 104.47)"
+        ]
+      },
+      "placeholder": {
+        "role": "neutral",
+        "displayName": "Placeholder Olive",
+        "tonalRamp": [
+          "oklch(0.150 0.0318 116.22)",
+          "oklch(0.264 0.0318 116.22)",
+          "oklch(0.379 0.0318 116.22)",
+          "oklch(0.493 0.0318 116.22)",
+          "oklch(0.607 0.0318 116.22)",
+          "oklch(0.721 0.0318 116.22)",
+          "oklch(0.836 0.0318 116.22)",
+          "oklch(0.950 0.0318 116.22)"
+        ]
+      },
+      "focus": {
+        "role": "neutral",
+        "displayName": "Warm Focus",
+        "tonalRamp": [
+          "oklch(0.150 0.1103 63.91)",
+          "oklch(0.264 0.1103 63.91)",
+          "oklch(0.379 0.1103 63.91)",
+          "oklch(0.493 0.1103 63.91)",
+          "oklch(0.607 0.1103 63.91)",
+          "oklch(0.721 0.1103 63.91)",
+          "oklch(0.836 0.1103 63.91)",
+          "oklch(0.950 0.1103 63.91)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Comfortaa Heading",
+        "purpose": "Friendly responsive page titles, with contextual home and word-slip sizes."
+      },
+      "title": {
+        "displayName": "Nunito Sans Title",
+        "purpose": "Bold section titles; CSS family alias Nunito."
+      },
+      "body": {
+        "displayName": "Nunito Sans Body",
+        "purpose": "Instructions and form content; CSS family alias Nunito."
+      },
+      "intro": {
+        "displayName": "Introductory Copy",
+        "purpose": "Enlarged supporting paragraphs."
+      },
+      "label": {
+        "displayName": "Action Label",
+        "purpose": "Strong sentence-case control labels."
+      },
+      "supporting": {
+        "displayName": "Supporting Copy",
+        "purpose": "Small secondary metadata and field descriptions."
+      },
+      "timer": {
+        "displayName": "Turn Countdown",
+        "purpose": "Bold tabular numbers with an urgent color change in the final ten seconds."
+      }
+    },
+    "shadows": [
+      {
+        "name": "primary-control",
+        "value": "0 5px 0 -1px #254533, 0 8px 12px -7px #315a4350",
+        "purpose": "Shipped lower edge and ambient shadow on primary controls; cleared on press."
+      },
+      {
+        "name": "secondary-control",
+        "value": "0 4px 0 -1px #c6cfb4, 0 7px 12px -9px #315a4350",
+        "purpose": "Shipped depth on light-sage actions."
+      },
+      {
+        "name": "coral-control",
+        "value": "0 4px 0 -1px #d8aa96, 0 7px 12px -9px #aa493450",
+        "purpose": "Shipped depth on soft-coral skip actions."
+      },
+      {
+        "name": "stepper-control",
+        "value": "0 3px 0 -1px #c6cfb4, 0 5px 8px -8px #315a4350",
+        "purpose": "Compact numeric controls."
+      },
+      {
+        "name": "word-slip",
+        "value": "0 6px 22px -8px #64553735",
+        "purpose": "Diffuse lift below the drawn word."
+      },
+      {
+        "name": "dialog",
+        "value": "0 22px 90px #182d3850",
+        "purpose": "Modal separation over the dim green backdrop."
+      }
+    ],
+    "motion": [
+      {
+        "name": "draw-slip",
+        "value": "0.26s cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "From rotate(-2deg) translateY(5px) to rest; word is already visible."
+      },
+      {
+        "name": "control-transition",
+        "value": "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background 0.15s, box-shadow 0.15s",
+        "purpose": "Primary, secondary, coral and quiet button state transitions."
+      },
+      {
+        "name": "icon-transition",
+        "value": "background 0.16s",
+        "purpose": "Icon-button light-sage hover surface."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "Removes animations and transitions; restores automatic scrolling."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact-layout",
+        "value": "359px",
+        "purpose": "max-width: shell gutters and cards tighten; settings stack and result columns narrow."
+      },
+      {
+        "name": "roomy-layout",
+        "value": "700px",
+        "purpose": "min-width: larger hero heading and added vertical room; single-column flow persists."
+      }
+    ],
+    "notes": [
+      "Color tonal ramps are synthesized OKLCH display metadata, not additional implemented theme tokens. Their eight values keep the source hue/chroma and vary lightness; browser gamut mapping may apply.",
+      "Component snippets reproduce visual structure and CSS states without the application runtime. Static stepper previews do not change the output.",
+      "Live CSS variables bind the previews to existing root tokens; other source colors remain literal values.",
+      "Bundled Nunito Sans fonts are registered under the CSS family name Nunito.",
+      "Internal avatar catalog data/persons/data.json retains the reference names Кирил (cat-man.webp), Квітка (cat-woman.webp), two separate people both labeled Андрій (cat-andrii.webp and cat-andrii-2.webp), Назар (cat-nazar.webp), Артур (cat-artur.webp), two separate people both labeled Юра (cat-yura.webp and cat-yura-2.webp), Ілона (cat-ilona.webp), two separate people both labeled Наталя (cat-natalia.webp and cat-natalia-2.webp), Ніка (cat-nika.webp), Даня (cat-dania.webp), Льоша (cat-liosha.webp), Ігор (cat-ihor.webp), Левко (cat-levko.webp), Розалія (cat-rozaliia.webp), Настя (cat-nastia.webp) and two separate people both labeled Валерія (cat-valeriia-1.webp and cat-valeriia-2.webp), with portraits in data/persons/img/. Names remain internal: the picker shows images only with generic accessible labels Аватар N. Додати гравця opens Обери аватар with the instruction Обери картинку для гравця. Ім’я введи в команді. Choosing an avatar creates a player with an empty name for manual entry. Змінити аватар reopens the picker and changes only the portrait, preserving the player name. Existing saved names and selections remain intact. Closing returns focus to the opener if connected.",
+      "Image-only avatar options use two equal grid columns, with twenty entries filling ten rows, 12px gaps and 8px 0 12px container padding. Buttons have a 1px #d4d3c0 border, #fffaf0 background, 12px corners, 12px 8px padding. Buttons contain the portrait only, without visible catalog-name labels. Hover is #e5ebdc with a 0.16s background transition. Choices are immediate actions, not pressed-state toggles. The native dialog scrolls within its existing height cap to reach the final choice on small screens.",
+      "Portrait CSS sizes: player row 56px × 56px; avatar dialog 112px × 128px with max-width 100%; word entry 88px × 96px; playing 72px × 80px; handoffs, privacy cover and turn summary 160px × 176px. Team scoreboard and final-results rows use names and scores without images. The hat and victory rasters remain in public/art/; all twenty character rasters are in data/persons/img/. All twenty-two shipping rasters have provenance sidecars.",
+      "New teams start empty with a zero-player count and muted 14px message. Players can be added and removed manually; advancing requires at least two named players per team. Team naming combines an editable custom text field with a native 48px-minimum select using data/teams.ts suggestions; the select has 10px padding, 1px #d4d3c0 border, 12px corners and #fffaf0 background.",
+      "The two Валерія profiles are separate people distinguished by portraits: cat-valeriia-1.webp has dark straight hair and a red floral dress; cat-valeriia-2.webp has short light curls and a white T-shirt. Ілона’s frontal portrait was regenerated using only her first photo as its human reference, retaining cat-ilona.webp for existing saved selections.",
+      "The two Наталя profiles are separate people with distinct images: cat-natalia.webp and cat-natalia-2.webp. The second has dark long waves, two silver clips and a white shirt. Даня (cat-dania.webp) has short dark curls, a leftward gaze, a black shirt with a blue/yellow sunflower and a backpack.",
+      "Льоша (cat-liosha.webp) has chin-length straight dark-blond/light-brown hair swept back off-center, blue eyes, a gentle closed smile, a charcoal standing-collar half-zip fleece and exactly two cat ears. art-prompts.json records the human reference and initial/correction prompt chain; the provenance sidecar holds the final prompt.",
+      "Ігор (cat-ihor.webp) has short tousled side-swept light-brown/dark-blond hair, gray-blue eyes, a reserved direct gaze, sparse chin stubble and a black hoodie.",
+      "The two Андрій profiles are separate people: the original cat-andrii.webp remains unchanged, and cat-andrii-2.webp shows long dark center-parted hair swept behind the temples, a broad rounded face, dark-brown eyes, a neutral direct gaze, sparse moustache/chin stubble, a black crewneck sweatshirt with a thin teal undershirt collar and exactly two top cat ears. art-prompts.json records the initial/correction prompt chain and intermediate PNG; the provenance sidecar holds the final prompt.",
+      "The two Юра profiles are separate people: the original cat-yura.webp remains unchanged, and cat-yura-2.webp shows short dense messy light-brown curls with cropped sides, full rounded cheeks, a broad neck and shoulders, brown-hazel eyes, a gentle closed half-smile, a head tilt toward image right, a clean-shaven face, a gray hoodie with drawstrings and no text, and exactly two cat ears.",
+      "Левко (cat-levko.webp) has dark shaggy wavy hair, brown eyes, a small beauty mark on the lower left cheek, a gentle half-smile and a navy T-shirt. Розалія (cat-rozaliia.webp) has long center-parted light-chestnut hair, brown eyes, a calm half-smile, a beige trench over cream knitwear and a tiny gold pendant. Both are transparent gouache cat busts with two cat ears. Their names remain internal catalog metadata.",
+      "Настя (cat-nastia.webp) has center-parted shoulder-length light-chestnut hair with softly curved ends, a wide open toothy smile, lifted cheeks and dimples, smiling brown-hazel eyes, a head tilt and a cream/oatmeal rib-knit turtleneck. The transparent cat bust has two cat ears. Her name remains internal catalog metadata; avatar selection never fills the player name."
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Advances or confirms the next game action.",
+      "html": "<button type=\"button\" class=\"ds-button-primary\">Почати гру</button>",
+      "css": ".ds-button-primary{display:flex;justify-content:center;align-items:center;gap:12px;min-height:60px;padding:15px 22px;width:100%;border:0;border-radius:18px;font-family:Nunito,sans-serif;font-size:17px;font-weight:800;line-height:1.4;cursor:pointer;touch-action:manipulation;transition:transform .15s cubic-bezier(.16,1,.3,1),background .15s,box-shadow .15s;background:var(--green);color:#fff9ed;box-shadow:var(--button-shadow);}.ds-button-primary:focus-visible{outline:3px solid #ad7030;outline-offset:4px;}.ds-button-primary:active:not(:disabled){transform:translateY(3px);box-shadow:none;}.ds-button-primary:disabled{opacity:.45;cursor:default;}.ds-button-primary:hover:not(:disabled){background:#284c38;}@media(prefers-reduced-motion:reduce){.ds-button-primary{transition:none;}}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Supports team setup and alternate confirmation actions.",
+      "html": "<button type=\"button\" class=\"ds-button-secondary\">Додати команду</button>",
+      "css": ".ds-button-secondary{display:flex;justify-content:center;align-items:center;gap:12px;min-height:60px;padding:15px 22px;width:100%;border:0;border-radius:18px;font-family:Nunito,sans-serif;font-size:17px;font-weight:800;line-height:1.4;cursor:pointer;touch-action:manipulation;transition:transform .15s cubic-bezier(.16,1,.3,1),background .15s,box-shadow .15s;background:var(--green-light);color:var(--ink);box-shadow:0 4px 0 -1px #c6cfb4,0 7px 12px -9px #315a4350;}.ds-button-secondary:focus-visible{outline:3px solid #ad7030;outline-offset:4px;}.ds-button-secondary:active:not(:disabled){transform:translateY(3px);box-shadow:none;}.ds-button-secondary:disabled{opacity:.45;cursor:default;}@media(prefers-reduced-motion:reduce){.ds-button-secondary{transition:none;}}"
+    },
+    {
+      "name": "Skip Button",
+      "kind": "button",
+      "refersTo": "button-coral",
+      "description": "Skips a word with its scoring consequence stated in the live game.",
+      "html": "<button type=\"button\" class=\"ds-button-coral\">Пропустити</button>",
+      "css": ".ds-button-coral{display:flex;justify-content:center;align-items:center;gap:12px;min-height:60px;padding:15px 22px;width:100%;border:0;border-radius:18px;font-family:Nunito,sans-serif;font-size:17px;font-weight:800;line-height:1.4;cursor:pointer;touch-action:manipulation;transition:transform .15s cubic-bezier(.16,1,.3,1),background .15s,box-shadow .15s;background:var(--coral-light);color:#83301e;box-shadow:0 4px 0 -1px #d8aa96,0 7px 12px -9px #aa493450;}.ds-button-coral:focus-visible{outline:3px solid #ad7030;outline-offset:4px;}.ds-button-coral:active:not(:disabled){transform:translateY(3px);box-shadow:none;}.ds-button-coral:disabled{opacity:.45;cursor:default;}@media(prefers-reduced-motion:reduce){.ds-button-coral{transition:none;}}"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "A transparent full-width alternate action.",
+      "html": "<button type=\"button\" class=\"ds-button-quiet\">Назад</button>",
+      "css": ".ds-button-quiet{display:flex;justify-content:center;align-items:center;gap:12px;min-height:60px;padding:15px 22px;width:100%;border:0;border-radius:18px;font-family:Nunito,sans-serif;font-size:17px;font-weight:800;line-height:1.4;cursor:pointer;touch-action:manipulation;transition:transform .15s cubic-bezier(.16,1,.3,1),background .15s,box-shadow .15s;background:transparent;color:var(--ink);}.ds-button-quiet:focus-visible{outline:3px solid #ad7030;outline-offset:4px;}.ds-button-quiet:active:not(:disabled){transform:translateY(3px);box-shadow:none;}.ds-button-quiet:disabled{opacity:.45;cursor:default;}@media(prefers-reduced-motion:reduce){.ds-button-quiet{transition:none;}}"
+    },
+    {
+      "name": "Player Text Field",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "Warm paper field used for player names; private word fields are taller.",
+      "html": "<label class=\"ds-field-label\" for=\"ds-player-name\">Ім’я гравця</label><input id=\"ds-player-name\" class=\"ds-field\" placeholder=\"Ім’я\" value=\"Оля\">",
+      "css": ".ds-field-label{display:block;margin-bottom:10px;font:800 13px Nunito,sans-serif;color:var(--ink);}.ds-field{min-width:0;min-height:48px;background:#fffaf0;color:var(--ink);border:1px solid #d4d3c0;border-radius:12px;padding:12px;font:400 16px Nunito,sans-serif;caret-color:var(--green);}.ds-field::placeholder{color:#70745f;opacity:1;}.ds-field:focus-visible{outline:3px solid #ad7030;outline-offset:4px;}"
+    },
+    {
+      "name": "Setup Progress",
+      "kind": "nav",
+      "refersTo": "setup-navigation",
+      "description": "Three non-interactive setup indicators; the current step is a light-sage capsule.",
+      "html": "<div class=\"ds-setup-progress\" aria-label=\"Крок 2 з 3\"><span>Команди</span><span class=\"ds-current\" aria-current=\"step\">Правила</span><span>Слова</span></div>",
+      "css": ".ds-setup-progress{display:flex;gap:8px;justify-content:center;margin:26px 0 30px;font:400 13px Nunito,sans-serif;color:var(--muted);}.ds-setup-progress span{padding:7px 15px;border-radius:30px;}.ds-setup-progress .ds-current{color:var(--green);background:var(--green-light);font-weight:800;}"
+    },
+    {
+      "name": "Team Badge",
+      "kind": "chip",
+      "refersTo": "team-badge",
+      "description": "A wrapping team-identity label on private handoff screens.",
+      "html": "<span class=\"ds-team-badge\">Лісові</span>",
+      "css": ".ds-team-badge{display:inline-block;background:var(--green-light);color:var(--ink);font:800 13px Nunito,sans-serif;padding:7px 16px;border-radius:24px;max-width:100%;overflow-wrap:anywhere;}"
+    },
+    {
+      "name": "Team Editor Surface",
+      "kind": "card",
+      "refersTo": "team-card",
+      "description": "Tinted team setup with editable custom team name, native suggested-name select and manually named players; add/change actions open the image-only avatar dialog. New players start with empty names and portrait replacement preserves existing names.",
+      "html": "<section class=\"ds-team-card\"><label class=\"ds-team-name\" for=\"ds-team-name\"><span>Назва команди 1</span><input id=\"ds-team-name\" value=\"Команда 1\"></label><label class=\"ds-team-preset\" for=\"ds-team-preset\">Готова назва<select id=\"ds-team-preset\"><option>Власна назва</option><option>Половина помідора</option><option>Діти Новосельцевих</option><option>Хата на Татача</option><option>D.Seniors</option><option>Це комісія</option></select></label><p class=\"ds-players-label\">Гравці <span>0</span></p><p class=\"ds-players-empty\">Поки нікого. Додай першого гравця.</p></section>",
+      "css": ".ds-team-card{min-width:0;border-radius:var(--radius);background:#ece9d8;padding:16px;color:var(--ink);font-family:Nunito,sans-serif;}.ds-team-name>span{display:block;font-size:11px;margin-bottom:2px;color:#5e624e;font-weight:800;}.ds-team-name input{color:var(--ink);font:800 19px Nunito,sans-serif;width:100%;background:transparent;border:0;border-bottom:1px solid #b7b9a5;padding:4px 0 8px;border-radius:0;min-height:48px;}.ds-team-name input:focus-visible{outline:3px solid #ad7030;outline-offset:4px;}.ds-players-label{font-size:13px;font-weight:800;display:flex;gap:8px;align-items:center;margin:20px 0 10px;}.ds-players-label span{color:var(--muted);font-weight:400;}@media(min-width:700px){.ds-team-card{padding:22px;}}@media(max-width:359px){.ds-team-card{padding:12px;}}.ds-team-preset{display:grid;gap:6px;margin:12px 0 20px;font-size:13px;font-weight:800;}.ds-team-preset select{width:100%;min-width:0;min-height:48px;padding:10px;border:1px solid #d4d3c0;border-radius:12px;color:var(--ink);background:#fffaf0;font:inherit;}.ds-team-preset select:focus-visible{outline:3px solid #ad7030;outline-offset:4px;}.ds-players-empty{color:var(--muted);font-size:14px;margin:16px 0;}"
+    },
+    {
+      "name": "Drawn Word Slip",
+      "kind": "custom",
+      "refersTo": "word-slip",
+      "description": "The immediately visible word, round-specific instruction and remaining-word count on softly lifted paper.",
+      "html": "<div class=\"ds-word-slip\"><span>Пояснюй своїй команді</span><h1>Парасолька</h1><small>4 записки у капелюсі</small></div>",
+      "css": ".ds-word-slip{background:#fffcf4;color:var(--ink);box-shadow:0 6px 22px -8px #64553735;border-radius:14px;min-height:210px;padding:24px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:24px;font-family:Nunito,sans-serif;animation:ds-draw-slip .26s cubic-bezier(.16,1,.3,1);}.ds-word-slip>span,.ds-word-slip>small{font-size:12px;color:var(--muted);}.ds-word-slip h1{margin:0;font-family:Comfortaa,sans-serif;font-weight:700;font-size:clamp(25px,6vw,38px);line-height:1.3;letter-spacing:-.025em;text-wrap:balance;width:100%;overflow-wrap:anywhere;}@keyframes ds-draw-slip{from{transform:rotate(-2deg) translateY(5px);box-shadow:0 3px 14px -8px #64553735;}to{transform:rotate(0) translateY(0);}}@media(min-width:700px){.ds-word-slip{min-height:240px;}}@media(prefers-reduced-motion:reduce){.ds-word-slip{animation:none;}}"
+    },
+    {
+      "name": "Numeric Stepper",
+      "kind": "custom",
+      "refersTo": "stepper",
+      "description": "48px plus/minus controls with a tabular output; live settings disable the controls at their limits.",
+      "html": "<div class=\"ds-stepper\"><button type=\"button\" aria-label=\"Зменшити: час на хід\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/></svg></button><output aria-label=\"Час на хід\">60<small>с</small></output><button type=\"button\" aria-label=\"Збільшити: час на хід\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg></button></div>",
+      "css": ".ds-stepper{display:flex;align-items:center;gap:6px;flex-shrink:0;color:var(--ink);font-family:Nunito,sans-serif;}.ds-stepper button{width:48px;height:48px;display:grid;place-items:center;border:0;background:var(--green-light);color:var(--green);border-radius:14px;box-shadow:0 3px 0 -1px #c6cfb4,0 5px 8px -8px #315a4350;cursor:pointer;touch-action:manipulation;}.ds-stepper button:focus-visible{outline:3px solid #ad7030;outline-offset:4px;}.ds-stepper button:active:not(:disabled){transform:translateY(3px);box-shadow:none;}.ds-stepper button:disabled{opacity:.45;cursor:default;}.ds-stepper output{min-width:43px;text-align:center;font-weight:800;font-size:24px;font-variant-numeric:tabular-nums;}.ds-stepper output small{font-size:14px;margin-left:2px;}@media(max-width:359px){.ds-stepper{justify-content:space-between;width:100%;margin-top:8px;}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Cozy Illustrated Board Game",
+    "overview": "Cream paper, forest-green actions, warm accents and gouache artwork make the shared phone feel like a small tabletop game. The illustrated hat and player-owned cat portraits, made from user-provided photos, supply character; rounded controls and quiet paper surfaces keep the interface welcoming and readable.\n\nThe system stays compact and centered, even on desktop. Headings, the current player, a visible countdown and one clearly drawn word slip carry the game. Private handoffs and pauses replace the word with a calm confirmation screen, while Ukrainian copy addresses the player directly.",
+    "keyCharacteristics": [
+      "Cream paper with forest-green ink and actions.",
+      "Gouache hat, trophy and player-owned cat portraits.",
+      "Comfortaa headings paired with self-hosted Nunito Sans body text.",
+      "Large rounded touch controls and restrained tactile depth.",
+      "A centered mobile column with private handoffs and visible timer feedback."
+    ],
+    "rules": [
+      {
+        "name": "The Action Color Rule",
+        "body": "Green advances or confirms; soft coral identifies skipping; yellow marks round guidance and winners. Keep the labels and symbols that explain those roles.",
+        "section": "colors"
+      },
+      {
+        "name": "The Readable Word Rule",
+        "body": "Keep the active word in Comfortaa, centered on its paper slip, with wrapping for long words and phrases. Animation never delays its visibility.",
+        "section": "typography"
+      },
+      {
+        "name": "The Shared Phone Rule",
+        "body": "Prioritize the current player, private content and the next action inside the centered column; retain explicit handoff screens before revealing private words.",
+        "section": "layout"
+      }
+    ],
+    "dos": [
+      "**Do** retain cream paper, forest-green actions, soft coral skips and butter-yellow guidance.",
+      "**Do** use the existing local gouache hat and trophy, and attach an approved catalog cat portrait to each player rather than to their team.",
+      "**Do** pair Comfortaa headings with the shipped Nunito Sans fonts and visible, wrapping Ukrainian labels.",
+      "**Do** preserve 48px touch controls, the warm keyboard focus outline and reduced-motion behavior.",
+      "**Do** keep the active word visible immediately, with round-specific instruction and visible countdown feedback.",
+      "**Do** hide private words behind handoff, privacy-cover and pause screens."
+    ],
+    "donts": [
+      "**Don't** substitute emoji, glyph icons or generic stock illustrations for the shipped SVG controls and gouache artwork.",
+      "**Don't** depend on color or sound alone to explain actions, scoring or time remaining.",
+      "**Don't** replace the centered mobile game flow with a dense desktop dashboard.",
+      "**Don't** expose private words on handoff or pause screens, or animate their appearance after a delay.",
+      "**Don't** expand the control shadows into a general hard-shadow decoration system."
+    ]
+  }
+}

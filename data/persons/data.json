@@ -1,0 +1,22 @@
+[
+  { "name": "Кирил", "img": "cat-man.webp" },
+  { "name": "Квітка", "img": "cat-woman.webp" },
+  { "name": "Андрій", "img": "cat-andrii.webp" },
+  { "name": "Назар", "img": "cat-nazar.webp" },
+  { "name": "Артур", "img": "cat-artur.webp" },
+  { "name": "Юра", "img": "cat-yura.webp" },
+  { "name": "Ілона", "img": "cat-ilona.webp" },
+  { "name": "Валерія", "img": "cat-valeriia-1.webp" },
+  { "name": "Валерія", "img": "cat-valeriia-2.webp" },
+  { "name": "Наталя", "img": "cat-natalia.webp" },
+  { "name": "Ніка", "img": "cat-nika.webp" },
+  { "name": "Наталя", "img": "cat-natalia-2.webp" },
+  { "name": "Даня", "img": "cat-dania.webp" },
+  { "name": "Льоша", "img": "cat-liosha.webp" },
+  { "name": "Ігор", "img": "cat-ihor.webp" },
+  { "name": "Андрій", "img": "cat-andrii-2.webp" },
+  { "name": "Юра", "img": "cat-yura-2.webp" },
+  { "name": "Левко", "img": "cat-levko.webp" },
+  { "name": "Розалія", "img": "cat-rozaliia.webp" },
+  { "name": "Настя", "img": "cat-nastia.webp" }
+]
