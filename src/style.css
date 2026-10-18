@@ -38,6 +38,11 @@
 * {
   box-sizing: border-box;
 }
+html,
+body,
+dialog {
+  touch-action: pan-x pan-y;
+}
 body {
   margin: 0;
   min-width: 320px;
@@ -447,6 +452,7 @@ main {
   color: var(--ink);
   background: #fffaf0;
   font: inherit;
+  font-size: 16px;
 }
 .players-empty {
   color: var(--muted);
@@ -517,6 +523,7 @@ main {
 }
 .player-input input,
 .word-input input {
+  font-size: 16px;
   min-width: 0;
   flex: 1;
   background: #fffaf0;

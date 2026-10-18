@@ -37,3 +37,7 @@ Readable contrast, 48px touch controls, keyboard focus, reduced motion, sound pa
 ## Character Asset Workflow
 
 Do not run automated tests when adding character portraits. The two Андрій entries, the two Юра entries, the two Валерія entries and the two Наталя entries represent distinct people with separate images and internal catalog names. Player names are entered manually and independently from the avatar. Ilona’s replacement portrait uses only her first, front-facing photograph; keep its existing filename so saved selections remain valid.
+
+## Mobile Gestures
+
+At the user’s explicit request, the viewport uses initial/maximum scale 1 and disables user scaling. The page and native dialogs permit panning without pinch zoom. Player-name and word inputs and the team-name selector use at least 16px text to avoid focus-triggered mobile zoom. Ordinary scrolling, keyboard interaction and safe-area layout remain available. Browser accessibility overrides may still permit zoom.

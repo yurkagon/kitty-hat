@@ -210,6 +210,8 @@ The palette combines warm paper neutrals, botanical greens and restrained coral 
 
 The outer shell has a maximum width of (960px), horizontal gutters of (24px), safe-area top/bottom padding and a minimum height of (100svh). Its header spans the shell; the main content remains a centered column of at most (560px). The footer follows content through a flex-column shell rather than covering controls.
 
+At the user’s explicit request, mobile zoom is suppressed with viewport `width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover`. The `html`, `body` and native `dialog` elements use `touch-action: pan-x pan-y`, allowing ordinary panning while omitting pinch zoom. Buttons retain `touch-action: manipulation`; ancestor gesture restrictions still apply. Safe-area layout, ordinary page/dialog scrolling and keyboard focus remain available. Browser accessibility overrides may still permit zoom; this records the implemented policy rather than real-phone verification.
+
 The home action group is capped at (340px). Handoff and finish actions may be capped at (380px). Setup forms stack team cards with (22px) gaps. Most supporting groups use repeated gaps or padding drawn from the frontmatter spacing tokens; the code also uses context-specific values rather than a strict mathematical scale.
 
 At (700px) and above, the header, screens and center layouts gain vertical room; team-card padding increases to (22px), and the word slip increases from (210px) to (240px) minimum height. Desktop keeps the same single-column game flow.
@@ -268,7 +270,7 @@ The player-row portrait and its clickable native-button target are (56px × 56px
 
 ### Inputs / Fields
 
-Player fields have control-paper backgrounds, (1px) field-line borders, (48px) minimum height and visible placeholder text. Private word fields share the style but increase minimum height to (56px). Team-name inputs are transparent, bold (19px) and underlined. A native “Готова назва” select offers the five suggestions from `data/teams.ts` plus “Власна назва”; the text field remains editable. The select has (48px) minimum height, (10px) padding, a (1px) field-line border, (12px) corners and a control-paper background. All receive the shared keyboard focus outline; word validation appears as a warm coral-toned alert rather than relying on field color alone.
+Player fields have explicit (16px) text, control-paper backgrounds, (1px) field-line borders, (48px) minimum height and visible placeholder text. Private word fields share the explicit (16px) text and style but increase minimum height to (56px). Team-name inputs are transparent, bold (19px) and underlined. A native “Готова назва” select offers the five suggestions from `data/teams.ts` plus “Власна назва”; the text field remains editable. The select has (48px) minimum height, (10px) padding, a (1px) field-line border, (12px) corners and a control-paper background; an explicit (16px) font size follows `font: inherit`. Player-name fields, word fields and the select use this size to avoid focus-triggered mobile zoom; team-name text remains (19px). All receive the shared keyboard focus outline; word validation appears as a warm coral-toned alert rather than relying on field color alone.
 
 Numeric settings use (48px) plus/minus controls surrounding a bold (24px), tabular output. Controls disable at their limits. Radio and checkbox settings remain native controls with the forest-green accent color and explicit labels.
 
