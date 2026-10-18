@@ -91,6 +91,7 @@ data/
       cat-nastia.webp
       cat-yehor.webp
       cat-robert.webp
+      cat-milana.webp
   teams.ts
 ```
 
@@ -121,7 +122,8 @@ data/
   { "name": "Розалія", "img": "cat-rozaliia.webp" },
   { "name": "Настя", "img": "cat-nastia.webp" },
   { "name": "Єгор", "img": "cat-yehor.webp" },
-  { "name": "Роберт", "img": "cat-robert.webp" }
+  { "name": "Роберт", "img": "cat-robert.webp" },
+  { "name": "Мілана", "img": "cat-milana.webp" }
 ]
 ```
 
@@ -133,4 +135,4 @@ The two Андрій entries, the two Юра entries, the two Валерія ent
 
 The design follows [Impeccable](https://github.com/pbakaus/impeccable), installed locally at `.agents/skills/impeccable/`, and the code follows [Ponytail](https://github.com/DietrichGebert/ponytail) full mode. `PRODUCT.md`, `SURFACE.md` and `DESIGN.md` document product and design decisions. The local Impeccable skill is available to Codex on the next turn.
 
-Twenty-six transparent illustrations were generated using the built-in ImageGen tool and optimized into WebP: the hat and victory trophy in `public/art/`, plus twenty-four cat portraits (twenty-two based on user-provided photos and two fictional base avatars) in `data/persons/img/`. Exact prompts are in `art-prompts.json` and asset sidecars. Self-hosted Comfortaa and Nunito Sans fonts include their OFL licenses in `public/fonts/`.
+Twenty-seven transparent illustrations were generated using the built-in ImageGen tool and optimized into WebP: the hat and victory trophy in `public/art/`, plus twenty-five cat portraits (twenty-three based on user-provided photos and two fictional base avatars) in `data/persons/img/`. Exact prompts are in `art-prompts.json` and asset sidecars. Self-hosted Comfortaa and Nunito Sans fonts include their OFL licenses in `public/fonts/`.
