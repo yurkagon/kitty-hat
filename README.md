@@ -26,12 +26,12 @@ The production website is the `dist/` directory. Development and preview use the
 ## Publish to GitHub Pages
 
 ```sh
-pnpm deploy
+pnpm run deploy
 ```
 
 This builds locally and uses [gh-pages](https://github.com/tschaub/gh-pages) to publish only `dist/` to the `gh-pages` branch of `origin`. A `.nojekyll` file bypasses Jekyll. Git access to `git@github.com:yurkagon/kitty-hat.git` is required.
 
-The site is [yurkagon.github.io/kitty-hat](https://yurkagon.github.io/kitty-hat/). In repository Settings → Pages, use **Deploy from a branch**, branch **gh-pages**, folder **/ (root)**. Repeat `pnpm deploy` after changes to publish a fresh build.
+The site is [yurkagon.github.io/kitty-hat](https://yurkagon.github.io/kitty-hat/). In repository Settings → Pages, use **Deploy from a branch**, branch **gh-pages**, folder **/ (root)**. Repeat `pnpm run deploy` after changes to publish a fresh build. Use the explicit `run`: `pnpm deploy` is a different built-in workspace command. If `pn` is your pnpm alias, use `pn run deploy`.
 
 ## Browser tests
 
