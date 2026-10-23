@@ -86,6 +86,7 @@ const start = async (page: Page) => {
 test("complete party, three rounds, results and replay", async ({ page }) => {
   await configure(page);
   await enterWords(page);
+  let skippedWord = "";
   for (let round = 0; round < 3; round++) {
     await start(page);
     await expect(page.locator(".word-slip > span")).toHaveText(
@@ -95,6 +96,10 @@ test("complete party, three rounds, results and replay", async ({ page }) => {
         "Підкажи лише одним словом",
       ][round],
     );
+    if (round === 0) {
+      skippedWord = await page.locator(".word-slip h1").innerText();
+      await page.getByRole("button", { name: /Пропустити/ }).click();
+    }
     for (let word = 0; word < 4; word++)
       await page.getByRole("button", { name: /Вгадано/ }).click();
     await expect(
@@ -108,6 +113,22 @@ test("complete party, three rounds, results and replay", async ({ page }) => {
   }
   await expect(page.locator(".winner-row")).toContainText("Лісові");
   await expect(page.locator(".winner-row > b")).toHaveText("8");
+  await expect(page.getByRole("heading", { name: "Топ-5 гравців" })).toBeVisible();
+  await expect(page.locator(".player-ranking li")).toHaveCount(4);
+  await expect(page.locator(".player-ranking li").first()).toContainText("Іра");
+  await expect(page.locator(".player-guessed b")).toHaveText(["4", "4", "4", "0"]);
+  await expect(page.getByRole("heading", { name: "Найбільш вгадувані слова" })).toBeVisible();
+  const hardest = page.locator(".word-highlight").filter({ has: page.getByRole("heading", { name: "Найменш вгадувані слова" }) });
+  await expect(hardest.locator("li")).toHaveCount(1);
+  await expect(hardest).toContainText(skippedWord);
+  await expect(hardest).toContainText("3 з 4 спроб успішні · 75%");
+  await expect(page.locator(".word-highlight li")).toHaveCount(4);
+  await expect(page.locator(".word-highlight li").filter({ hasText: "Лис" })).toContainText("Автор: Оля");
+  await page.reload();
+  await page.getByRole("button", { name: "Переглянути результат" }).click();
+  await expect(page.locator(".player-guessed b")).toHaveText(["4", "4", "4", "0"]);
+  await expect(page.locator(".word-highlight li")).toHaveCount(4);
+  await page.screenshot({ path: "test-results/final-statistics.png", fullPage: true });
   await page.getByRole("button", { name: "Зіграти ще" }).click();
   await expect(
     page.getByRole("textbox", { name: "Назва команди 1", exact: true }),
@@ -116,6 +137,7 @@ test("complete party, three rounds, results and replay", async ({ page }) => {
     JSON.parse(localStorage.getItem("hat.game.v1")!),
   );
   expect(saved.words).toEqual([]);
+  expect(saved.history).toEqual([]);
   expect(
     saved.teams.every((team: { scores: number[] }) =>
       team.scores.every((score) => score === 0),

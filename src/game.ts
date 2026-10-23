@@ -44,6 +44,10 @@ export type Turn = {
   deadline: number | null;
   remainingMs: number;
 };
+export type CompletedTurn = {
+  playerId: string;
+  results: TurnResult[];
+};
 export type GameState = {
   version: 1;
   stage: Stage;
@@ -56,6 +60,7 @@ export type GameState = {
   round: number;
   teamIndex: number;
   turn: Turn | null;
+  history?: CompletedTurn[];
 };
 export type Action =
   | { type: "NEW_GAME"; state: GameState }
@@ -135,6 +140,7 @@ export const createGame = (previous?: GameState): GameState => ({
   round: 0,
   teamIndex: 0,
   turn: null,
+  history: [],
 });
 
 export const getPlayers = (state: GameState) =>
@@ -195,6 +201,41 @@ const addScore = (state: GameState, amount: number) =>
 export const getTurnResults = (state: GameState): TurnResult[] =>
   state.turn?.results ??
   (state.turn?.guessed ?? []).map((wordId) => ({ wordId, status: "guessed" }));
+
+export const getGameStats = (state: GameState) => {
+  if (!state.history) return null;
+  const players = getPlayers(state).map((player) => ({ player, guessed: 0 }));
+  const words = state.words.map((word) => ({
+    word,
+    author: players.find(({ player }) => player.id === word.playerId)!.player,
+    guessed: 0,
+    attempts: 0,
+  }));
+  const playersById = new Map(players.map((entry) => [entry.player.id, entry]));
+  const wordsById = new Map(words.map((entry) => [entry.word.id, entry]));
+  for (const turn of state.history) {
+    for (const result of turn.results) {
+      const word = wordsById.get(result.wordId)!;
+      word.attempts++;
+      if (result.status === "guessed") {
+        word.guessed++;
+        playersById.get(turn.playerId)!.guessed++;
+      }
+    }
+  }
+  players.sort((first, second) =>
+    second.guessed - first.guessed || first.player.name.localeCompare(second.player.name, "uk"),
+  );
+  const attempted = words.filter((word) => word.attempts > 0);
+  const rates = attempted.map((word) => word.guessed / word.attempts);
+  const highestRate = Math.max(...rates);
+  const lowestRate = Math.min(...rates);
+  return {
+    players,
+    easiest: attempted.filter((word) => word.guessed / word.attempts === highestRate),
+    hardest: attempted.filter((word) => word.guessed / word.attempts === lowestRate),
+  };
+};
 
 const expireTurn = (state: GameState): GameState => ({
   ...state,
@@ -501,6 +542,9 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
       teams,
       teamIndex: (state.teamIndex + 1) % teams.length,
       turn: null,
+      history: state.history
+        ? [...state.history, { playerId: state.turn!.playerId, results: getTurnResults(state) }]
+        : undefined,
     };
     if (state.deck.length) return { ...nextState, stage: "turn-handoff" };
     if (state.round === 2) return { ...nextState, stage: "finished" };

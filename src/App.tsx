@@ -7,6 +7,7 @@ import {
   createGame,
   gameReducer,
   getExplainer,
+  getGameStats,
   getPlayers,
   getTeam,
   getTurnResults,
@@ -968,6 +969,15 @@ export const App = () => {
     const winners = ranked.filter(
       (item) => totalScore(item) === totalScore(ranked[0]),
     );
+    const stats = getGameStats(state);
+    const wordHighlights = stats
+      ? stats.easiest.length === state.words.length
+        ? [{ title: "Усі слова вгадували однаково", words: stats.easiest }]
+        : [
+            { title: "Найбільш вгадувані слова", words: stats.easiest },
+            { title: "Найменш вгадувані слова", words: stats.hardest },
+          ]
+      : [];
     return (
       <section className="finish-screen">
         <img
@@ -1006,6 +1016,44 @@ export const App = () => {
             </div>
           ))}
         </div>
+        {stats ? (
+          <div className="party-stats">
+            <section aria-labelledby="player-ranking-title">
+              <h2 id="player-ranking-title">Топ-5 гравців</h2>
+              <p className="muted">За словами, які команда вгадала під час пояснення гравця. Без віднімання штрафів. Однаковий результат — спільне місце.</p>
+              <ol className="player-ranking">
+                {stats.players.slice(0, 5).map(({ player, guessed }) => (
+                  <li key={player.id}>
+                    <span className="player-rank">{stats.players.findIndex((entry) => entry.guessed === guessed) + 1}</span>
+                    <Avatar avatar={player.avatar} />
+                    <strong>{player.name}</strong>
+                    <span className="player-guessed"><b>{guessed}</b><small>вгадано</small></span>
+                  </li>
+                ))}
+              </ol>
+            </section>
+            <section aria-labelledby="word-stats-title">
+              <h2 id="word-stats-title">Слова партії</h2>
+              <p className="muted">Порівнюємо частку успішних спроб: пропуски й невгадані слова після сигналу теж враховуються. За однакового результату показуємо всі слова.</p>
+              {wordHighlights.map(({ title, words }) => (
+                <section className="word-highlight" key={title}>
+                  <h3>{title}</h3>
+                  <ul>
+                    {words.map(({ word, author, guessed, attempts }) => (
+                      <li key={word.id}>
+                        <strong>{word.text}</strong>
+                        <span>Автор: {author.name}</span>
+                        <small>{guessed} з {attempts} спроб успішні · {Math.round(100 * guessed / attempts)}%</small>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </section>
+          </div>
+        ) : (
+          <p className="notice">Детальна статистика доступна для нових партій. У цьому збереженні історія ходів ще не записувалася.</p>
+        )}
         <p className="muted">
           Три раунди позаду. А найкращі жарти
           <br />

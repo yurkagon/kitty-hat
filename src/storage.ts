@@ -165,6 +165,21 @@ export const isGameState = (value: unknown): value is GameState => {
   )
     return false;
   if (
+    state.history !== undefined &&
+    (!Array.isArray(state.history) ||
+      !state.history.every((turn) =>
+        isRecord(turn) &&
+        playerIds.has(turn.playerId) &&
+        Array.isArray(turn.results) &&
+        turn.results.every((result: unknown) =>
+          isRecord(result) &&
+          isString(result.wordId) &&
+          wordIds.has(result.wordId) &&
+          ["guessed", "skipped", "unanswered"].includes(String(result.status)),
+        ),
+      )))
+    return false;
+  if (
     !Object.entries(state.drafts).every(
       ([id, draft]) =>
         playerIds.has(id) &&

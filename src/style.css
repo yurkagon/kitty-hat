@@ -1097,6 +1097,75 @@ progress::-moz-progress-bar {
   opacity: 0.55;
   cursor: not-allowed;
 }
+.party-stats {
+  display: grid;
+  gap: 28px;
+  margin: 28px 0;
+  text-align: left;
+}
+.party-stats h2 {
+  font-size: 22px;
+}
+.player-ranking,
+.word-highlight ul {
+  list-style: none;
+  padding: 0;
+}
+.player-ranking li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.player-rank {
+  min-width: 20px;
+  font-weight: 800;
+  color: var(--muted);
+}
+.player-ranking .avatar {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+.player-ranking strong {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.player-guessed,
+.word-highlight li {
+  display: grid;
+  gap: 4px;
+}
+.player-guessed {
+  text-align: right;
+  color: var(--green);
+}
+.player-guessed b {
+  font-size: 22px;
+}
+.word-highlight {
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: #ebeadd;
+}
+.word-highlight h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.word-highlight li {
+  padding: 12px 0;
+  overflow-wrap: anywhere;
+}
+.word-highlight li + li {
+  border-top: 1px solid var(--line);
+}
+.word-highlight li > span,
+.word-highlight small {
+  color: var(--muted);
+}
 .finish-screen {
   text-align: center;
   padding-top: 8px;

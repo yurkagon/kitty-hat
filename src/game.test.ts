@@ -6,6 +6,7 @@ import {
   createGame,
   gameReducer,
   getExplainer,
+  getGameStats,
   getPlayers,
   getTeam,
   getTurnResults,
@@ -407,6 +408,75 @@ describe("storage boundary", () => {
         namedGame(),
       ),
     ).toBe(false);
+  });
+});
+
+describe("party statistics", () => {
+  it("records corrected results once and restores them without losing authors", () => {
+    let state = startTurn(readyGame({ skip: "penalty", timeout: "strict" }));
+    const player = getExplainer(state);
+    const original = [...state.deck];
+    state = gameReducer(state, { type: "GUESS", now: 1001 });
+    state = gameReducer(state, { type: "SKIP", now: 1002 });
+    state = gameReducer(state, { type: "EXPIRE", now: 16000 });
+    state = gameReducer(state, { type: "UPDATE_TURN_RESULT", index: 1, status: "guessed" });
+    expect(state.history).toEqual([]);
+    state = nextTurn(state);
+    expect(state.history).toHaveLength(1);
+    expect(nextTurn(state)).toBe(state);
+    const stats = getGameStats(state)!;
+    expect(stats.players[0]).toEqual({ player, guessed: 2 });
+    expect(stats.easiest.map(({ word }) => word.id)).toEqual(original.slice(0, 2));
+    expect(stats.hardest[0]).toMatchObject({
+      word: { id: original[2] }, guessed: 0, attempts: 1,
+      author: getPlayers(state).find((person) => person.id === state.words[2].playerId),
+    });
+    expect(loadGame({ getItem: () => JSON.stringify(state) }).state).toEqual(state);
+    expect(getGameStats(createGame(state))!.players.every((entry) => entry.guessed === 0)).toBe(true);
+    expect(createGame(state).history).toEqual([]);
+  });
+
+  it("ranks a complete three-round party by successful attempts, with equal results tied", () => {
+    let state = readyGame();
+    const skippedId = state.deck[0];
+    for (let round = 0; round < 3; round++) {
+      state = startTurn(state);
+      if (round === 0) state = gameReducer(state, { type: "SKIP", now: 1001 });
+      while (state.stage === "playing") state = gameReducer(state, { type: "GUESS", now: 1002 });
+      state = nextTurn(state);
+      expect(isGameState(state)).toBe(true);
+    }
+    expect(state.stage).toBe("finished");
+    expect(state.history).toHaveLength(3);
+    const stats = getGameStats(state)!;
+    expect(stats.players.map((entry) => entry.guessed)).toEqual([4, 4, 4, 0]);
+    expect(stats.hardest).toHaveLength(1);
+    expect(stats.hardest[0]).toMatchObject({ word: { id: skippedId }, guessed: 3, attempts: 4 });
+    expect(stats.easiest).toHaveLength(3);
+    expect(stats.easiest.every((word) => word.guessed === 3 && word.attempts === 3)).toBe(true);
+    state.history = state.history!.map((turn) => ({ ...turn, results: turn.results.filter((result) => result.status === "guessed") }));
+    expect(getGameStats(state)!.easiest).toHaveLength(4);
+    expect(getGameStats(state)!.hardest).toHaveLength(4);
+  });
+
+  it("keeps legacy games playable without fabricating statistics", () => {
+    let state = startTurn(readyGame());
+    delete state.history;
+    while (state.stage === "playing") state = gameReducer(state, { type: "GUESS", now: 1001 });
+    state = nextTurn(state);
+    expect(getGameStats(state)).toBeNull();
+    expect(loadGame({ getItem: () => JSON.stringify(state) }).state).not.toBeNull();
+  });
+
+  it("rejects invalid saved statistics", () => {
+    const state = readyGame();
+    const turn = { playerId: getPlayers(state)[0].id, results: [{ wordId: state.words[0].id, status: "guessed" }] };
+    expect(isGameState({ ...state, history: [turn] })).toBe(true);
+    expect(isGameState({ ...state, history: [{ ...turn, playerId: "unknown" }] })).toBe(false);
+    expect(isGameState({ ...state, history: [{ ...turn, results: [{ wordId: "unknown", status: "guessed" }] }] })).toBe(false);
+    expect(isGameState({ ...state, history: [{ ...turn, results: [{ wordId: state.words[0].id, status: "invalid" }] }] })).toBe(false);
+    expect(isGameState({ ...state, history: [{ ...turn, results: null }] })).toBe(false);
+    expect(isGameState({ ...state, history: null })).toBe(false);
   });
 });
 
