@@ -483,6 +483,15 @@ main {
   border: 0;
   border-top: 3px solid #9aa88b;
 }
+.avatar-letter {
+  grid-column: 1 / -1;
+  margin: 12px 0 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+  color: var(--green);
+  font-family: Comfortaa, sans-serif;
+  font-size: 24px;
+}
 .person-options button {
   min-width: 0;
   display: grid;

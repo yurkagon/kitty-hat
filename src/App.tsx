@@ -20,6 +20,13 @@ import {
 import { loadGame, saveGame } from "./storage";
 import { unlockAudio, useTurnTimer } from "./timer";
 
+const avatarOptions = [
+  ...persons.slice(0, 2),
+  ...persons.slice(2).sort((first, second) =>
+    (first.surname + first.name).localeCompare(second.surname + second.name, "uk"),
+  ),
+];
+
 const rounds = [
   {
     name: "Поясни словами",
@@ -1081,15 +1088,21 @@ export const App = () => {
         >
           <p>Ім’я людини підставиться автоматично. Його можна змінити в команді.</p>
           <div className="person-options">
-            {persons.map((person, index) => {
+            {avatarOptions.map((person, index) => {
               const label =
                 index === 0 ? "Хлопець" : index === 1 ? "Дівчина" : null;
+              const letter = (person.surname || person.name)[0];
               return (
                 <Fragment key={person.img}>
                   {index === 2 && <hr className="avatar-divider" />}
+                  {index >= 2 &&
+                    (index === 2 ||
+                      letter !== (avatarOptions[index - 1].surname || avatarOptions[index - 1].name)[0]) && (
+                      <h3 className="avatar-letter">{letter}</h3>
+                    )}
                   <button
                     type="button"
-                    aria-label={label ?? `${person.name}, аватар ${index + 1}`}
+                    aria-label={label ?? `${person.name}, аватар ${persons.indexOf(person) + 1}`}
                     onClick={() => {
                       if (personTarget.playerId) {
                         dispatch({
