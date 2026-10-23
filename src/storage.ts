@@ -129,6 +129,14 @@ export const isGameState = (value: unknown): value is GameState => {
       !isString(value.turn.teamId) ||
       !isString(value.turn.playerId) ||
       !isStringArray(value.turn.guessed) ||
+      (value.turn.results !== undefined &&
+        (!Array.isArray(value.turn.results) ||
+          !value.turn.results.every(
+            (result) =>
+              isRecord(result) &&
+              isString(result.wordId) &&
+              ["guessed", "skipped", "unanswered"].includes(String(result.status)),
+          ))) ||
       !isInteger(value.turn.skips) ||
       value.turn.skips < 0 ||
       !isInteger(value.turn.penalty) ||
@@ -200,6 +208,26 @@ export const isGameState = (value: unknown): value is GameState => {
       return false;
     if (state.stage === "playing" && state.turn.deadline === null) return false;
     if (state.stage !== "playing" && state.turn.deadline !== null) return false;
+    if (state.turn.results) {
+      const results = state.turn.results;
+      const guessed = results
+        .filter((result) => result.status === "guessed")
+        .map((result) => result.wordId);
+      if (
+        guessed.length !== state.turn.guessed.length ||
+        new Set(guessed).size !== guessed.length ||
+        guessed.some((id) => !state.turn!.guessed.includes(id)) ||
+        results.some(
+          (result) =>
+            !wordIds.has(result.wordId) ||
+            (!state.deck.includes(result.wordId) &&
+              !state.turn!.guessed.includes(result.wordId)),
+        ) ||
+        results.filter((result) => result.status === "skipped").length >
+          state.turn.skips
+      )
+        return false;
+    }
   } else if (state.turn !== null) return false;
   if (
     state.stage === "finished" &&

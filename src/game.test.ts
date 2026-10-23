@@ -8,6 +8,7 @@ import {
   getExplainer,
   getPlayers,
   getTeam,
+  getTurnResults,
   makePlayer,
   makeTeam,
   shuffle,
@@ -309,6 +310,11 @@ describe("storage boundary", () => {
 
   it("restores the previous player avatar IDs without changing names or progress", () => {
     const state = startTurn(readyGame());
+    state.teams.forEach((team) => {
+      team.players.forEach((player, index) => {
+        player.avatar = index === 0 ? "cat-man.webp" : "cat-woman.webp";
+      });
+    });
     const legacy = {
       ...state,
       teams: state.teams.map((team) => ({
@@ -401,5 +407,137 @@ describe("storage boundary", () => {
         namedGame(),
       ),
     ).toBe(false);
+  });
+});
+
+describe("turn result corrections", () => {
+  it("records only words encountered during the turn", () => {
+    let state = startTurn(readyGame({ timeout: "strict" }));
+    const original = [...state.deck];
+    state = gameReducer(state, { type: "SKIP", now: 1001 });
+    state = gameReducer(state, { type: "GUESS", now: 1002 });
+    state = gameReducer(state, { type: "EXPIRE", now: 16000 });
+    expect(getTurnResults(state)).toEqual([
+      { wordId: original[0], status: "skipped" },
+      { wordId: original[1], status: "guessed" },
+      { wordId: original[2], status: "unanswered" },
+    ]);
+    expect(isGameState(state)).toBe(true);
+  });
+
+  it("reversibly corrects penalized skips and persists the result", () => {
+    let state = startTurn(readyGame({ skip: "penalty", timeout: "strict" }));
+    const skipped = state.deck[0];
+    state = gameReducer(state, { type: "SKIP", now: 1001 });
+    state = gameReducer(state, { type: "GUESS", now: 1002 });
+    state = gameReducer(state, { type: "EXPIRE", now: 16000 });
+    const corrected = gameReducer(state, {
+      type: "UPDATE_TURN_RESULT", index: 0, status: "guessed",
+    });
+    expect(totalScore(getTeam(corrected))).toBe(2);
+    expect(corrected.turn?.skips).toBe(0);
+    expect(corrected.turn?.penalty).toBe(0);
+    expect(corrected.deck).not.toContain(skipped);
+    expect(loadGame({ getItem: () => JSON.stringify(corrected) }).state).toEqual(corrected);
+    expect(gameReducer(corrected, {
+      type: "UPDATE_TURN_RESULT", index: 0, status: "skipped",
+    })).toEqual(state);
+  });
+
+  it.each([0, 2])("reopens completed round %s before advancing", (round) => {
+    let state = readyGame();
+    for (let index = 0; index <= round; index++) {
+      state = startTurn(state);
+      while (state.deck.length)
+        state = gameReducer(state, { type: "GUESS", now: 1001 });
+      if (index < round) state = nextTurn(state);
+    }
+    const score = totalScore(getTeam(state));
+    const wordId = state.turn!.guessed[0];
+    state = gameReducer(state, {
+      type: "UPDATE_TURN_RESULT", index: 0, status: "unanswered",
+    });
+    expect(totalScore(getTeam(state))).toBe(score - 1);
+    expect(state.deck).toEqual([wordId]);
+    expect(isGameState(state)).toBe(true);
+    state = nextTurn(state);
+    expect(state.stage).toBe("turn-handoff");
+    expect(state.round).toBe(round);
+    expect(gameReducer(state, {
+      type: "UPDATE_TURN_RESULT", index: 0, status: "guessed",
+    })).toBe(state);
+  });
+
+  it("never awards a repeated word twice and can remove an accidental skip penalty", () => {
+    let state = startTurn(readyGame({ skip: "penalty" }));
+    state = gameReducer(state, { type: "SKIP", now: 1001 });
+    while (state.deck.length)
+      state = gameReducer(state, { type: "GUESS", now: 1002 });
+    expect(totalScore(getTeam(state))).toBe(3);
+    expect(gameReducer(state, {
+      type: "UPDATE_TURN_RESULT", index: 0, status: "guessed",
+    })).toBe(state);
+    state = gameReducer(state, {
+      type: "UPDATE_TURN_RESULT", index: 0, status: "unanswered",
+    });
+    expect(totalScore(getTeam(state))).toBe(4);
+    expect(state.turn?.skips).toBe(0);
+    expect(state.deck).toEqual([]);
+    expect(isGameState(state)).toBe(true);
+  });
+
+  it.each([true, false])("records the timeout word once, without revealing the next (guessed=%s)", (guessed) => {
+    let state = startTurn(readyGame());
+    const original = [...state.deck];
+    state = gameReducer(state, { type: "GUESS", now: 1001 });
+    state = gameReducer(state, { type: "EXPIRE", now: 16000 });
+    state = gameReducer(state, { type: "RESOLVE_TIMEOUT", guessed });
+    expect(getTurnResults(state)).toEqual([
+      { wordId: original[0], status: "guessed" },
+      { wordId: original[1], status: guessed ? "guessed" : "unanswered" },
+    ]);
+    expect(isGameState(state)).toBe(true);
+  });
+
+  it("keeps older saves and their skip penalties usable", () => {
+    let state = startTurn(readyGame({ skip: "penalty", timeout: "strict" }));
+    state = gameReducer(state, { type: "GUESS", now: 1001 });
+    state = gameReducer(state, { type: "SKIP", now: 1002 });
+    state = gameReducer(state, { type: "EXPIRE", now: 16000 });
+    delete state.turn!.results;
+    expect(loadGame({ getItem: () => JSON.stringify(state) }).state).toEqual(state);
+    state = gameReducer(state, {
+      type: "UPDATE_TURN_RESULT", index: 0, status: "unanswered",
+    });
+    expect(totalScore(getTeam(state))).toBe(-1);
+    expect(state.turn?.skips).toBe(1);
+    expect(state.turn?.penalty).toBe(1);
+    expect(isGameState(state)).toBe(true);
+
+    state = startTurn(readyGame());
+    state = gameReducer(state, { type: "GUESS", now: 1001 });
+    state = gameReducer(state, { type: "EXPIRE", now: 16000 });
+    delete state.turn!.results;
+    state = gameReducer(state, { type: "RESOLVE_TIMEOUT", guessed: true });
+    expect(getTurnResults(state)).toHaveLength(2);
+    expect(state.turn?.guessed).toHaveLength(2);
+    expect(isGameState(state)).toBe(true);
+  });
+
+  it("rejects invalid history and forbidden skip corrections", () => {
+    let state = startTurn(readyGame({ skip: "disabled", timeout: "strict" }));
+    state = gameReducer(state, { type: "EXPIRE", now: 16000 });
+    expect(gameReducer(state, {
+      type: "UPDATE_TURN_RESULT", index: 0, status: "skipped",
+    })).toBe(state);
+    expect(gameReducer(state, {
+      type: "UPDATE_TURN_RESULT", index: -1, status: "guessed",
+    })).toBe(state);
+    expect(isGameState({ ...state, turn: { ...state.turn, results: [{
+      wordId: "unknown", status: "unanswered",
+    }] } })).toBe(false);
+    expect(isGameState({ ...state, turn: { ...state.turn, results: [{
+      wordId: state.deck[0], status: "invalid",
+    }] } })).toBe(false);
   });
 });

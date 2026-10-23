@@ -15,7 +15,7 @@ const addPlayer = async (
   await page
     .getByRole("dialog")
     .getByRole("button", {
-      name: avatar === 1 ? "Хлопець" : avatar === 2 ? "Дівчина" : `Аватар ${avatar}`,
+      name: avatar === 1 ? "Хлопець" : avatar === 2 ? "Дівчина" : new RegExp(`аватар ${avatar}$`),
       exact: true,
     })
     .click();
@@ -302,7 +302,7 @@ test("empty teams, suggested and custom names, modal cancellation and removal pe
     page.getByRole("button", { name: "Закрити", exact: true }),
   ).toBeFocused();
   await page.keyboard.press("Tab");
-  await expect(page.locator(".person-options button span")).toHaveText([
+  await expect(page.locator(".person-options .base-avatar-label")).toHaveText([
     "Хлопець",
     "Дівчина",
   ]);
@@ -507,7 +507,7 @@ test("visual evidence across mobile and desktop screens", async ({ page }) => {
   await capture("persons-320");
   const lastChoice = page
     .getByRole("dialog")
-    .getByRole("button", { name: "Аватар 9", exact: true });
+    .getByRole("button", { name: /аватар 9$/ });
   await lastChoice.scrollIntoViewIfNeeded();
   await expect(lastChoice).toBeInViewport();
   await capture("persons-bottom-320");
@@ -517,4 +517,32 @@ test("visual evidence across mobile and desktop screens", async ({ page }) => {
   });
   await expect(lastChoice).toBeInViewport();
   await capture("persons-desktop");
+});
+
+test("turn summary edits score, preserves corrections on reload and hides words after handoff", async ({ page }) => {
+  await configure(page, "strict");
+  await enterWords(page);
+  await page.clock.install();
+  await start(page);
+  await page.getByRole("button", { name: /Вгадано/ }).click();
+  await page.getByRole("button", { name: /Пропустити/ }).click();
+  await page.clock.fastForward(16000);
+  const results = page.locator(".turn-results").getByRole("switch");
+  await expect(results).toHaveCount(3);
+  await expect(results.nth(0)).toBeChecked();
+  await expect(results.nth(0)).toHaveText("Вгадано");
+  await expect(results.nth(1)).not.toBeChecked();
+  await expect(results.nth(1)).toHaveText("Не вгадано");
+  await expect(results.nth(2)).not.toBeChecked();
+  await results.nth(0).focus();
+  await page.keyboard.press("Space");
+  await results.nth(1).click();
+  await expect(page.locator(".earned-score")).toHaveText("+1балів за цей хід");
+  await page.reload();
+  await page.getByRole("button", { name: "Продовжити гру" }).click();
+  await expect(results.nth(0)).not.toBeChecked();
+  await expect(results.nth(1)).toBeChecked();
+  await page.getByRole("button", { name: "Наступна команда" }).click();
+  await expect(page.locator(".turn-results")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Почати хід" })).toBeVisible();
 });

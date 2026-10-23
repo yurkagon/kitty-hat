@@ -9,6 +9,7 @@ import {
   getExplainer,
   getPlayers,
   getTeam,
+  getTurnResults,
   makePlayer,
   makeTeam,
   normalizeWord,
@@ -895,6 +896,45 @@ export const App = () => {
               </span>
             ) : null}
           </div>
+          <div className="turn-results">
+            <h2>Слова цього ходу</h2>
+            <p className="muted">Перевір результати й виправ випадкові натискання.</p>
+            <ol>
+              {getTurnResults(state).map((result, index) => {
+                const word = state.words.find((item) => item.id === result.wordId)!;
+                return (
+                  <li key={index}>
+                    <span>{word.text}</span>
+                    <button
+                      type="button"
+                      role="switch"
+                      className="word-result-toggle"
+                      aria-label={`Результат слова ${index + 1}: ${word.text}`}
+                      aria-checked={result.status === "guessed"}
+                      disabled={
+                        result.status !== "guessed" &&
+                        state.turn!.guessed.includes(result.wordId)
+                      }
+                      onClick={() =>
+                        dispatch({
+                          type: "UPDATE_TURN_RESULT",
+                          index,
+                          status:
+                            result.status !== "guessed"
+                              ? "guessed"
+                              : state.settings.skip === "disabled"
+                                ? "unanswered"
+                                : "skipped",
+                        })
+                      }
+                    >
+                      {result.status === "guessed" ? "Вгадано" : "Не вгадано"}
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
           <Scoreboard teams={state.teams} activeId={team.id} />
           <p className="muted">
             {state.deck.length
@@ -1049,7 +1089,7 @@ export const App = () => {
                   {index === 2 && <hr className="avatar-divider" />}
                   <button
                     type="button"
-                    aria-label={label ?? `Аватар ${index + 1}`}
+                    aria-label={label ?? `${person.name}, аватар ${index + 1}`}
                     onClick={() => {
                       if (personTarget.playerId) {
                         dispatch({
@@ -1072,7 +1112,9 @@ export const App = () => {
                     }}
                   >
                     <Avatar avatar={person.img} />
-                    {label && <span>{label}</span>}
+                    <span className={label ? "base-avatar-label" : undefined}>
+                      {label ?? person.name}
+                    </span>
                   </button>
                 </Fragment>
               );

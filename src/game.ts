@@ -18,6 +18,10 @@ export type Settings = {
   sound: boolean;
 };
 export type Word = { id: string; text: string; playerId: string };
+export type TurnResult = {
+  wordId: string;
+  status: "guessed" | "skipped" | "unanswered";
+};
 export type Stage =
   | "teams"
   | "settings"
@@ -34,6 +38,7 @@ export type Turn = {
   playerId: string;
   teamId: string;
   guessed: string[];
+  results?: TurnResult[];
   skips: number;
   penalty: number;
   deadline: number | null;
@@ -81,6 +86,7 @@ export type Action =
   | { type: "START_TURN"; now: number }
   | { type: "GUESS" | "SKIP" | "EXPIRE" | "PAUSE" | "RESUME"; now: number }
   | { type: "RESOLVE_TIMEOUT"; guessed: boolean }
+  | { type: "UPDATE_TURN_RESULT"; index: number; status: TurnResult["status"] }
   | { type: "NEXT_TURN"; order: string[] };
 
 const makeId = () =>
@@ -186,18 +192,36 @@ const addScore = (state: GameState, amount: number) =>
     return { ...team, scores };
   });
 
+export const getTurnResults = (state: GameState): TurnResult[] =>
+  state.turn?.results ??
+  (state.turn?.guessed ?? []).map((wordId) => ({ wordId, status: "guessed" }));
+
 const expireTurn = (state: GameState): GameState => ({
   ...state,
   stage:
     state.settings.timeout === "confirm" && state.deck.length > 0
       ? "timeout"
       : "turn-summary",
-  turn: state.turn ? { ...state.turn, remainingMs: 0, deadline: null } : null,
+  turn: state.turn
+    ? {
+        ...state.turn,
+        remainingMs: 0,
+        deadline: null,
+        results: [
+          ...getTurnResults(state),
+          ...(state.deck.length
+            ? [{ wordId: state.deck[0], status: "unanswered" as const }]
+            : []),
+        ],
+      }
+    : null,
 });
 
 const guessWord = (state: GameState): GameState => {
   if (!state.turn || !state.deck.length) return state;
   const deck = state.deck.slice(1);
+  const results = getTurnResults(state);
+  const lastResult = results.at(-1);
   return {
     ...state,
     teams: addScore(state, 1),
@@ -206,6 +230,15 @@ const guessWord = (state: GameState): GameState => {
     turn: {
       ...state.turn,
       guessed: [...state.turn.guessed, state.deck[0]],
+      results:
+        state.stage === "timeout" &&
+        lastResult?.wordId === state.deck[0] &&
+        lastResult.status === "unanswered"
+          ? [
+              ...results.slice(0, -1),
+              { wordId: state.deck[0], status: "guessed" },
+            ]
+          : [...results, { wordId: state.deck[0], status: "guessed" }],
       deadline: deck.length ? state.turn.deadline : null,
     },
   };
@@ -358,6 +391,7 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
         teamId: getTeam(state).id,
         playerId: getExplainer(state).id,
         guessed: [],
+        results: [],
         skips: 0,
         penalty: 0,
         remainingMs: state.settings.duration * 1000,
@@ -382,6 +416,10 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
           ...state.turn,
           skips: state.turn.skips + 1,
           penalty: state.turn.penalty + penalty,
+          results: [
+            ...getTurnResults(state),
+            { wordId: state.deck[0], status: "skipped" },
+          ],
         },
       };
     }
@@ -403,8 +441,54 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
       turn: { ...state.turn, deadline: action.now + state.turn.remainingMs },
     };
   if (action.type === "RESOLVE_TIMEOUT" && state.stage === "timeout") {
-    const result = action.guessed ? guessWord(state) : state;
+    const recorded = state.turn?.results ? state : expireTurn(state);
+    const result = action.guessed ? guessWord(recorded) : recorded;
     return { ...result, stage: "turn-summary" };
+  }
+  if (
+    action.type === "UPDATE_TURN_RESULT" &&
+    state.stage === "turn-summary" &&
+    state.turn
+  ) {
+    const results = getTurnResults(state);
+    const previous = results[action.index];
+    if (
+      !previous ||
+      previous.status === action.status ||
+      (action.status === "guessed" &&
+        state.turn.guessed.includes(previous.wordId)) ||
+      (action.status === "skipped" && state.settings.skip === "disabled")
+    )
+      return state;
+    const guessedChange =
+      Number(action.status === "guessed") - Number(previous.status === "guessed");
+    const skipsChange =
+      Number(action.status === "skipped") - Number(previous.status === "skipped");
+    const penaltyChange = state.settings.skip === "penalty" ? skipsChange : 0;
+    return {
+      ...state,
+      teams: addScore(state, guessedChange - penaltyChange),
+      deck:
+        action.status === "guessed"
+          ? state.deck.filter((id) => id !== previous.wordId)
+          : previous.status === "guessed"
+            ? [...state.deck, previous.wordId]
+            : state.deck,
+      turn: {
+        ...state.turn,
+        guessed:
+          action.status === "guessed"
+            ? [...state.turn.guessed, previous.wordId]
+            : previous.status === "guessed"
+              ? state.turn.guessed.filter((id) => id !== previous.wordId)
+              : state.turn.guessed,
+        skips: state.turn.skips + skipsChange,
+        penalty: state.turn.penalty + penaltyChange,
+        results: results.map((result, index) =>
+          index === action.index ? { ...result, status: action.status } : result,
+        ),
+      },
+    };
   }
   if (action.type === "NEXT_TURN" && state.stage === "turn-summary") {
     const teams = state.teams.map((team, index) =>
