@@ -547,13 +547,13 @@ test("avatar picker sorts and groups by surname while keeping surnames hidden", 
   await page.getByRole("button", { name: "Додати гравця в команду 1", exact: true }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.locator(".avatar-letter")).toHaveText([
-    "Б", "В", "Г", "Д", "І", "К", "Л", "М", "П", "Р", "Т", "У", "Ф", "Х",
+    "Б", "В", "Г", "Д", "Ж", "І", "К", "Л", "М", "П", "Р", "Т", "У", "Ф", "Х", "Ц",
   ]);
   const choices = dialog.locator(".person-options button");
   await expect(choices).toHaveText([
-    "Хлопець", "Дівчина", "Валерія", "Ілона", "Наталя", "Даня", "Квітка",
-    "Левко", "Артур", "Ігор", "Кирил", "Єгор", "Юра", "Наталя", "Валерія",
-    "Ніка", "Назар", "Мілана", "Роберт", "Розалія", "Андрій", "Андрій", "Льоша", "Настя", "Юра",
+    "Хлопець", "Дівчина", "Валерія", "Ілона", "Наталя", "Тоня", "Даня", "Квітка",
+    "Левко", "Артур", "Ігор", "Аня", "Кирил", "Єгор", "Юра", "Наталя", "Валерія",
+    "Ніка", "Назар", "Мілана", "Роберт", "Розалія", "Андрій", "Андрій", "Катя", "Сандра", "Льоша", "Настя", "Юра", "Нікіта",
   ]);
   await expect(choices.nth(2)).toHaveAttribute("aria-label", "Валерія, аватар 10");
   await expect(choices.nth(3)).toHaveAttribute("aria-label", "Ілона, аватар 9");
