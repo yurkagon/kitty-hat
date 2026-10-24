@@ -28,5 +28,21 @@
   { "name": "Тоня", "surname": "Гаврищишин", "img": "cat-tonia.webp" },
   { "name": "Аня", "surname": "Жураківська", "img": "cat-ania.webp" },
   { "name": "Сандра", "surname": "Татач", "img": "cat-sandra.webp" },
-  { "name": "Катя", "surname": "Татач", "img": "cat-katia.webp" }
+  { "name": "Катя", "surname": "Татач", "img": "cat-katia.webp" },
+  { "name": "Вова", "surname": "Рихва", "img": "cat-vova.webp" },
+  { "name": "Ігор", "surname": "Новосельцев", "img": "cat-ihor-novoseltsev.webp" },
+  { "name": "Ніка", "surname": "Антонова", "img": "cat-nika-antonova.webp" },
+  { "name": "Емі", "surname": "Антонова", "img": "cat-emi-antonova.webp" },
+  { "name": "Еля", "surname": "Моткалюк", "img": "cat-elia-motkaliuk.webp" },
+  { "name": "Олена", "surname": "Синицька", "img": "cat-olena-synytska.webp" },
+  { "name": "Ярік", "surname": "Залізняк", "img": "cat-yarik-zalizniak.webp" },
+  { "name": "Настя", "surname": "Цупік", "img": "cat-nastia-tsupik.webp" },
+  { "name": "Марта", "surname": "Бугиль", "img": "cat-marta-buhyl.webp" },
+  { "name": "Богдан", "surname": "Бугиль", "img": "cat-bohdan-buhyl.webp" },
+  { "name": "Семен", "surname": "Янишин", "img": "cat-semen-yanyshyn.webp" },
+  { "name": "Софія", "surname": "Іванович", "img": "cat-sofiia-ivanovych.webp" },
+  { "name": "Лі", "surname": "Хюмеріан", "img": "cat-li-khiumerian.webp" },
+  { "name": "Віталік", "surname": "Юськів", "img": "cat-vitalik-yuskiv.webp" },
+  { "name": "Саша", "surname": "Фронч", "img": "cat-sasha-fronch.webp" },
+  { "name": "Ілона", "surname": "Дорош", "img": "cat-ilona-dorosh.webp" }
 ]

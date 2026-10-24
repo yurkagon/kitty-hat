@@ -547,16 +547,16 @@ test("avatar picker sorts and groups by surname while keeping surnames hidden", 
   await page.getByRole("button", { name: "Додати гравця в команду 1", exact: true }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.locator(".avatar-letter")).toHaveText([
-    "Б", "В", "Г", "Д", "Ж", "І", "К", "Л", "М", "П", "Р", "Т", "У", "Ф", "Х", "Ц",
+    "А", "Б", "В", "Г", "Д", "Ж", "З", "І", "К", "Л", "М", "Н", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ю", "Я",
   ]);
   const choices = dialog.locator(".person-options button");
   await expect(choices).toHaveText([
-    "Хлопець", "Дівчина", "Валерія", "Ілона", "Наталя", "Тоня", "Даня", "Квітка",
-    "Левко", "Артур", "Ігор", "Аня", "Кирил", "Єгор", "Юра", "Наталя", "Валерія",
-    "Ніка", "Назар", "Мілана", "Роберт", "Розалія", "Андрій", "Андрій", "Катя", "Сандра", "Льоша", "Настя", "Юра", "Нікіта",
+    "Хлопець", "Дівчина", "Емі", "Ніка", "Валерія", "Ілона", "Богдан", "Марта", "Наталя", "Тоня", "Даня", "Квітка",
+    "Левко", "Артур", "Ігор", "Ілона", "Аня", "Ярік", "Софія", "Кирил", "Єгор", "Юра", "Наталя", "Валерія",
+    "Ніка", "Назар", "Мілана", "Еля", "Ігор", "Вова", "Роберт", "Розалія", "Андрій", "Олена", "Андрій", "Катя", "Сандра", "Льоша", "Настя", "Саша", "Юра", "Лі", "Настя", "Нікіта", "Віталік", "Семен",
   ]);
-  await expect(choices.nth(2)).toHaveAttribute("aria-label", "Валерія, аватар 10");
-  await expect(choices.nth(3)).toHaveAttribute("aria-label", "Ілона, аватар 9");
+  await expect(choices.nth(4)).toHaveAttribute("aria-label", "Валерія, аватар 10");
+  await expect(choices.nth(5)).toHaveAttribute("aria-label", "Ілона, аватар 9");
   await expect(dialog).not.toContainText("Ганчук");
   await dialog.getByRole("button", { name: "Квітка, аватар 4", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "Ім’я гравця 1, команда 1", exact: true })).toHaveValue("Квітка");
