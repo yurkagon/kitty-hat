@@ -44,5 +44,8 @@
   { "name": "Лі", "surname": "Хюмеріан", "img": "cat-li-khiumerian.webp" },
   { "name": "Віталік", "surname": "Юськів", "img": "cat-vitalik-yuskiv.webp" },
   { "name": "Саша", "surname": "Фронч", "img": "cat-sasha-fronch.webp" },
-  { "name": "Ілона", "surname": "Дорош", "img": "cat-ilona-dorosh.webp" }
+  { "name": "Ілона", "surname": "Дорош", "img": "cat-ilona-dorosh.webp" },
+  { "name": "Діма", "surname": "Залізняк", "img": "cat-dima-zalizniak.webp" },
+  { "name": "Володимир", "surname": "Білик", "img": "cat-volodymyr-bilyk.webp" },
+  { "name": "Віка", "surname": "Сапєгіна", "img": "cat-vika-sapiehina.webp" }
 ]
