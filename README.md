@@ -191,3 +191,9 @@ pnpm exec playwright install chromium
 The site targets [hat.dchurch.lviv.ua](https://hat.dchurch.lviv.ua/). [`public/CNAME`](public/CNAME) preserves the custom domain, and Vite serves assets from `/`.
 
 To publish manually, run `pnpm run deploy` with write access to the repository. In GitHub **Settings → Pages**, select the **gh-pages** branch and **/ (root)** folder. Use the explicit `run`: `pnpm deploy` is a separate pnpm workspace command.
+
+## License
+
+[MIT](LICENSE) © 2026 Yurii Khvyshchuk.
+
+Bundled fonts retain their licenses in [`public/fonts/`](public/fonts/). The project license does not grant rights to anyone's name, likeness or endorsement.
