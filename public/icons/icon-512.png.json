@@ -1,0 +1,15 @@
+{
+  "prompt": "Use case: logo-brand. Asset type: square opaque PWA app icon for the Ukrainian party word game Капелюх.\nInput image 1: existing game illustration, use ONLY as the identity reference for the forest-green magician's top hat with coral ribbon/bow, cream word slips and warm painted medium.\nCreate a clean, highly legible small-size app icon of that green top hat with a coral-red ribbon and small bow, opening tilted gently toward viewer, two simple blank cream paper slips and one small golden sparkle rising from it. Warm softly textured gouache/colored-pencil illustration matching the cozy source, simplify the many confetti details for clarity. Rich forest green #315a43, muted coral, cream, gold.\nBackground: uniform solid warm cream #f6f1e6 filling ALL edges and corners, fully opaque. No rounded-corner tile, no border, no drop-shadow card. Square canvas.\nCritical Android maskable safe zone: the ENTIRE hat, bow, slips and sparkle must fit within the central circle of diameter 68% of canvas, leaving generous empty cream padding on every side. Center visual weight. No text, letters, typography, logos, cat, watermark, additional objects or extra decorations. Strong readable silhouette.",
+  "references": [
+    "public/art/hat.webp"
+  ],
+  "tool": "built-in imagegen",
+  "exports": {
+    "icon-192.png": "192x192",
+    "icon-512.png": "512x512",
+    "icon-maskable-512.png": "512x512, artwork resized to 384x384 and centered on an opaque cream canvas",
+    "apple-touch-icon.png": "180x180",
+    "favicon-32.png": "32x32"
+  },
+  "createdAt": "2026-10-24T16:56:00.816Z"
+}
