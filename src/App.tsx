@@ -24,7 +24,7 @@ import { unlockAudio, useTurnTimer } from "./timer";
 const avatarOptions = [
   ...persons.slice(0, 2),
   ...persons.slice(2).sort((first, second) =>
-    (first.surname + first.name).localeCompare(second.surname + second.name, "uk"),
+    (first.name + first.surname).localeCompare(second.name + second.surname, "uk"),
   ),
 ];
 
@@ -1139,13 +1139,13 @@ export const App = () => {
             {avatarOptions.map((person, index) => {
               const label =
                 index === 0 ? "Хлопець" : index === 1 ? "Дівчина" : null;
-              const letter = (person.surname || person.name)[0];
+              const letter = person.name[0];
               return (
                 <Fragment key={person.img}>
                   {index === 2 && <hr className="avatar-divider" />}
                   {index >= 2 &&
                     (index === 2 ||
-                      letter !== (avatarOptions[index - 1].surname || avatarOptions[index - 1].name)[0]) && (
+                      letter !== avatarOptions[index - 1].name[0]) && (
                       <h3 className="avatar-letter">{letter}</h3>
                     )}
                   <button

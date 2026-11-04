@@ -541,22 +541,23 @@ test("visual evidence across mobile and desktop screens", async ({ page }) => {
   await capture("persons-desktop");
 });
 
-test("avatar picker sorts and groups by surname while keeping surnames hidden", async ({ page }) => {
+test("avatar picker sorts by first name then surname and groups by first name while keeping surnames hidden", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Почати гру", exact: true }).click();
   await page.getByRole("button", { name: "Додати гравця в команду 1", exact: true }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.locator(".avatar-letter")).toHaveText([
-    "А", "Б", "В", "Г", "Д", "Ж", "З", "І", "К", "Л", "М", "Н", "П", "Р", "С", "Т", "У", "Ф", "Х", "Ц", "Ю", "Я",
+    "А", "Б", "В", "Д", "Е", "Є", "І", "К", "Л", "М", "Н", "О", "Р", "С", "Т", "Ю", "Я",
   ]);
   const choices = dialog.locator(".person-options button");
   await expect(choices).toHaveText([
-    "Хлопець", "Дівчина", "Емі", "Ніка", "Володимир", "Мілана", "Валерія", "Ілона", "Богдан", "Марта", "Наталя", "Тоня", "Даня", "Квітка",
-    "Левко", "Артур", "Ігор", "Ілона", "Аня", "Діма", "Ярік", "Софія", "Кирил", "Єгор", "Юра", "Наталя", "Валерія",
-    "Ніка", "Назар", "Еля", "Ігор", "Вова", "Роберт", "Розалія", "Андрій", "Віка", "Маша", "Олена", "Андрій", "Катя", "Сандра", "Льоша", "Настя", "Саша", "Юра", "Лі", "Настя", "Нікіта", "Віталік", "Семен",
+    "Хлопець", "Дівчина", "Андрій", "Андрій", "Аня", "Артур", "Богдан", "Валерія", "Валерія", "Віка", "Віталік", "Вова", "Володимир",
+    "Даня", "Діма", "Еля", "Емі", "Єгор", "Ігор", "Ігор", "Ілона", "Ілона", "Катя", "Квітка", "Кирил", "Левко", "Лі", "Льоша",
+    "Марта", "Маша", "Мілана", "Назар", "Настя", "Настя", "Наталя", "Наталя", "Ніка", "Ніка", "Нікіта", "Олена", "Роберт", "Розалія",
+    "Сандра", "Саша", "Семен", "Софія", "Тоня", "Юра", "Юра", "Ярік",
   ]);
-  await expect(choices.nth(6)).toHaveAttribute("aria-label", "Валерія, аватар 10");
-  await expect(choices.nth(7)).toHaveAttribute("aria-label", "Ілона, аватар 9");
+  await expect(choices.nth(2)).toHaveAttribute("aria-label", "Андрій, аватар 5");
+  await expect(choices.nth(3)).toHaveAttribute("aria-label", "Андрій, аватар 18");
   await expect(dialog).not.toContainText("Ганчук");
   await dialog.getByRole("button", { name: "Квітка, аватар 4", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "Ім’я гравця 1, команда 1", exact: true })).toHaveValue("Квітка");

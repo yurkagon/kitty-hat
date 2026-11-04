@@ -81,7 +81,7 @@ Real screenshots from the application. Click any image to view it at full size.
 ## Features
 
 - **A party on one device:** player-written notes, private handoffs, rotating explainers and three rounds with the same words.
-- **Personal cat avatars:** named portraits autofill an editable first name. The picker groups and sorts people by surname; surnames stay hidden in the UI.
+- **Personal cat avatars:** named portraits autofill an editable first name. The picker sorts people by first name then surname and groups them by first-name initial; surnames stay hidden in the UI.
 - **Flexible rules:** free skips, a one-point skip penalty or no skipping; strict timeouts or confirmation of an answer given before the signal.
 - **Reliable timing:** pause/resume, sound cues in the last ten seconds, and an absolute deadline that prevents reloads from adding time.
 - **Editable turn results:** switch a word between guessed and not guessed before handing off; scores and the remaining hat update accordingly.
@@ -162,7 +162,7 @@ vite.config.ts             build, manifest and service-worker configuration
 
 Append a `{ "name", "surname", "img" }` entry to [the avatar catalog](data/persons/data.json) and place its image in [the portrait folder](data/persons/img/). Keep existing image filenames and catalog entries stable: saved games use the filenames to identify avatars. The first two entries are the generic boy/girl characters.
 
-Portraits sort by **surname + first name**, using Ukrainian alphabetical order. An empty surname falls back to the first name. Add team-name suggestions in [`data/teams.ts`](data/teams.ts).
+Portraits sort by **first name + surname**, using Ukrainian alphabetical order, and are grouped by the first letter of the first name. Add team-name suggestions in [`data/teams.ts`](data/teams.ts).
 
 Illustrations and the promotional preview were created with ImageGen; prompt sidecars accompany the assets. The screenshot gallery shows the actual app. Font licenses are included in [`public/fonts/`](public/fonts/).
 
