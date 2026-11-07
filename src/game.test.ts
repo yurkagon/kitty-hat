@@ -36,7 +36,7 @@ const readyGame = (settings: Partial<Settings> = {}) => {
   let state = gameReducer(namedGame(), { type: "GO_SETTINGS" });
   state = gameReducer(state, {
     type: "SET_SETTINGS",
-    patch: { wordsPerPlayer: 1, duration: 15, ...settings },
+    patch: { wordsPerPlayer: 1, duration: 15, lastWordForAll: false, ...settings },
   });
   state = gameReducer(state, { type: "BEGIN_WORDS" });
   for (let index = 0; index < getPlayers(state).length; index++) {
@@ -249,6 +249,134 @@ describe("turn rules", () => {
     expect(gameReducer(resumed, { type: "EXPIRE", now: 212000 }).stage).toBe(
       "timeout",
     );
+  });
+});
+
+describe("last word for all teams", () => {
+  it("defaults to enabled for new games and keeps the choice on replay", () => {
+    expect(createGame().settings.lastWordForAll).toBe(true);
+    expect(createGame(readyGame()).settings.lastWordForAll).toBe(false);
+    expect(createGame(readyGame({ lastWordForAll: true })).settings.lastWordForAll).toBe(true);
+  });
+
+  it.each(["strict", "confirm"] as const)("opens the current word to all teams with the %s timeout policy", (timeout) => {
+    const state = startTurn(readyGame({ lastWordForAll: true, timeout }));
+    const expired = gameReducer(state, { type: "GUESS", now: 16000 });
+    expect(expired.stage).toBe("timeout");
+    expect(expired.deck).toEqual(state.deck);
+    expect(getTurnResults(expired)).toEqual([{ wordId: state.deck[0], status: "unanswered", teamId: null }]);
+    expect(isGameState(expired)).toBe(true);
+    expect(loadGame({ getItem: () => JSON.stringify(expired) }).state).toEqual(expired);
+  });
+
+  it.each([0, 1])("credits only the selected team %s and keeps the usual turn rotation", (winner) => {
+    let state = startTurn(readyGame({ lastWordForAll: true }));
+    const player = getExplainer(state);
+    const wordId = state.deck[0];
+    state = gameReducer(state, { type: "EXPIRE", now: 16000 });
+    const teamId = state.teams[winner].id;
+    state = gameReducer(state, { type: "RESOLVE_TIMEOUT", guessed: true, teamId });
+    expect(state.stage).toBe("turn-summary");
+    expect(state.teams.map(totalScore)).toEqual(winner === 0 ? [1, 0] : [0, 1]);
+    expect(state.deck).not.toContain(wordId);
+    expect(state.turn?.guessed).toEqual([wordId]);
+    expect(getTurnResults(state)).toEqual([{ wordId, status: "guessed", teamId }]);
+    expect(isGameState(state)).toBe(true);
+    expect(gameReducer(state, { type: "RESOLVE_TIMEOUT", guessed: true, teamId })).toBe(state);
+    state = nextTurn(state);
+    expect(state.teamIndex).toBe(1);
+    expect(state.teams[0].nextPlayer).toBe(1);
+    expect(state.teams[1].nextPlayer).toBe(0);
+    const stats = getGameStats(state)!;
+    expect(stats.players.find((entry) => entry.player.id === player.id)?.guessed).toBe(winner === 0 ? 1 : 0);
+    expect(stats.easiest.find((entry) => entry.word.id === wordId)).toMatchObject({ guessed: 1, attempts: 1 });
+    expect(loadGame({ getItem: () => JSON.stringify(state) }).state).toEqual(state);
+  });
+
+  it("keeps an unanswered shared word in the hat without skip penalties", () => {
+    let state = startTurn(readyGame({ lastWordForAll: true, skip: "penalty" }));
+    const original = [...state.deck];
+    state = gameReducer(state, { type: "EXPIRE", now: 16000 });
+    state = gameReducer(state, { type: "RESOLVE_TIMEOUT", guessed: false });
+    expect(state.deck).toEqual(original);
+    expect(state.teams.map(totalScore)).toEqual([0, 0]);
+    expect(state.turn).toMatchObject({ penalty: 0, skips: 0 });
+    expect(getTurnResults(state)).toEqual([{ wordId: original[0], status: "unanswered", teamId: null }]);
+    expect(isGameState(state)).toBe(true);
+  });
+
+  it("requires a real team before awarding a shared word", () => {
+    const expired = gameReducer(startTurn(readyGame({ lastWordForAll: true })), { type: "EXPIRE", now: 16000 });
+    expect(gameReducer(expired, { type: "RESOLVE_TIMEOUT", guessed: true })).toBe(expired);
+    expect(gameReducer(expired, { type: "RESOLVE_TIMEOUT", guessed: true, teamId: "unknown" })).toBe(expired);
+    expect(gameReducer(expired, { type: "NEXT_TURN", order: expired.deck })).toBe(expired);
+  });
+
+  it.each(["penalty", "disabled"] as const)("reassigns and reverses the shared point with %s skipping", (skip) => {
+    let state = startTurn(readyGame({ lastWordForAll: true, skip }));
+    const wordId = state.deck[0];
+    state = gameReducer(state, { type: "EXPIRE", now: 16000 });
+    state = gameReducer(state, { type: "RESOLVE_TIMEOUT", guessed: true, teamId: state.teams[1].id });
+    state = gameReducer(state, { type: "UPDATE_TURN_RESULT", index: 0, status: "guessed", teamId: state.teams[0].id });
+    expect(state.teams.map(totalScore)).toEqual([1, 0]);
+    expect(state.turn?.guessed).toEqual([wordId]);
+    expect(getTurnResults(state)).toHaveLength(1);
+    expect(isGameState(state)).toBe(true);
+    state = gameReducer(state, { type: "UPDATE_TURN_RESULT", index: 0, status: "unanswered" });
+    expect(state.teams.map(totalScore)).toEqual([0, 0]);
+    expect(state.deck.filter((id) => id === wordId)).toHaveLength(1);
+    expect(state.turn).toMatchObject({ guessed: [], skips: 0, penalty: 0 });
+    expect(gameReducer(state, { type: "UPDATE_TURN_RESULT", index: 0, status: "skipped" })).toBe(state);
+    state = gameReducer(state, { type: "UPDATE_TURN_RESULT", index: 0, status: "guessed", teamId: state.teams[1].id });
+    expect(state.teams.map(totalScore)).toEqual([0, 1]);
+    expect(state.deck).not.toContain(wordId);
+    expect(loadGame({ getItem: () => JSON.stringify(state) }).state).toEqual(state);
+  });
+
+  it("can correct an unanswered shared word only after choosing its team", () => {
+    let state = gameReducer(startTurn(readyGame({ lastWordForAll: true })), { type: "EXPIRE", now: 16000 });
+    state = gameReducer(state, { type: "RESOLVE_TIMEOUT", guessed: false });
+    expect(gameReducer(state, { type: "UPDATE_TURN_RESULT", index: 0, status: "guessed" })).toBe(state);
+    expect(gameReducer(state, { type: "UPDATE_TURN_RESULT", index: 0, status: "guessed", teamId: "unknown" })).toBe(state);
+    const corrected = gameReducer(state, { type: "UPDATE_TURN_RESULT", index: 0, status: "guessed", teamId: state.teams[1].id });
+    expect(corrected.teams.map(totalScore)).toEqual([0, 1]);
+    expect(isGameState(corrected)).toBe(true);
+  });
+
+  it("ends every round after its final shared word and preserves its team point", () => {
+    let state = readyGame({ lastWordForAll: true });
+    for (let round = 0; round < 3; round++) {
+      state = startTurn(state);
+      const currentTeam = state.teamIndex;
+      const winner = (currentTeam + 1) % state.teams.length;
+      while (state.deck.length > 1) state = gameReducer(state, { type: "GUESS", now: 1001 });
+      state = gameReducer(state, { type: "EXPIRE", now: 16000 });
+      state = gameReducer(state, { type: "RESOLVE_TIMEOUT", guessed: true, teamId: state.teams[winner].id });
+      expect(state.deck).toEqual([]);
+      expect(state.teams[currentTeam].scores[round]).toBe(3);
+      expect(state.teams[winner].scores[round]).toBe(1);
+      state = nextTurn(state);
+      expect(isGameState(state)).toBe(true);
+    }
+    expect(state.stage).toBe("finished");
+    expect(state.teams.reduce((sum, team) => sum + totalScore(team), 0)).toBe(12);
+  });
+
+  it("migrates old games with their previous timeout rules and validates new saved fields", () => {
+    const state = startTurn(readyGame({ lastWordForAll: false, timeout: "strict" }));
+    const legacy = JSON.parse(JSON.stringify(state));
+    delete legacy.settings.lastWordForAll;
+    const loaded = loadGame({ getItem: () => JSON.stringify(legacy) });
+    expect(loaded.state).toEqual(state);
+    expect(gameReducer(loaded.state!, { type: "EXPIRE", now: 16000 }).stage).toBe("turn-summary");
+    expect(loadGame({ getItem: () => JSON.stringify({ ...state, settings: { ...state.settings, lastWordForAll: "true" } }) }).issue).toBe("corrupt");
+    let shared = gameReducer(startTurn(readyGame({ lastWordForAll: true })), { type: "EXPIRE", now: 16000 });
+    shared = gameReducer(shared, { type: "RESOLVE_TIMEOUT", guessed: true, teamId: shared.teams[1].id });
+    const invalidResult = { ...getTurnResults(shared)[0], teamId: "unknown" };
+    expect(isGameState({ ...shared, turn: { ...shared.turn, results: [invalidResult] } })).toBe(false);
+    expect(isGameState({ ...shared, turn: { ...shared.turn, results: [{ ...invalidResult, teamId: null }] } })).toBe(false);
+    const committed = nextTurn(shared);
+    expect(isGameState({ ...committed, history: [{ ...committed.history![0], results: [invalidResult] }] })).toBe(false);
   });
 });
 

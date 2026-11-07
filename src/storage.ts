@@ -5,6 +5,7 @@ import {
   getTeam,
   setupIsValid,
   type GameState,
+  type TurnResult,
 } from "./game";
 
 export const storageKey = "hat.game.v1";
@@ -30,6 +31,13 @@ const isFiniteNumber = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value);
 const isStringArray = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every(isString);
+const isTurnResult = (value: unknown): value is TurnResult =>
+  isRecord(value) &&
+  isString(value.wordId) &&
+  ["guessed", "skipped", "unanswered"].includes(String(value.status)) &&
+  (value.teamId === undefined ||
+    (value.status !== "skipped" &&
+      (isString(value.teamId) || (value.teamId === null && value.status === "unanswered"))));
 
 export const isGameState = (value: unknown): value is GameState => {
   if (
@@ -63,7 +71,8 @@ export const isGameState = (value: unknown): value is GameState => {
   if (
     !["free", "penalty", "disabled"].includes(String(settings.skip)) ||
     !["confirm", "strict"].includes(String(settings.timeout)) ||
-    typeof settings.sound !== "boolean"
+    typeof settings.sound !== "boolean" ||
+    typeof settings.lastWordForAll !== "boolean"
   )
     return false;
   if (
@@ -131,12 +140,7 @@ export const isGameState = (value: unknown): value is GameState => {
       !isStringArray(value.turn.guessed) ||
       (value.turn.results !== undefined &&
         (!Array.isArray(value.turn.results) ||
-          !value.turn.results.every(
-            (result) =>
-              isRecord(result) &&
-              isString(result.wordId) &&
-              ["guessed", "skipped", "unanswered"].includes(String(result.status)),
-          ))) ||
+          !value.turn.results.every(isTurnResult))) ||
       !isInteger(value.turn.skips) ||
       value.turn.skips < 0 ||
       !isInteger(value.turn.penalty) ||
@@ -152,8 +156,12 @@ export const isGameState = (value: unknown): value is GameState => {
   const players = getPlayers(state);
   const playerIds = new Set(players.map((player) => player.id));
   const wordIds = new Set(state.words.map((word) => word.id));
+  const teamIds = new Set(state.teams.map((team) => team.id));
+  const hasValidResultTeam = (result: TurnResult) =>
+    result.teamId === undefined ||
+    (settings.lastWordForAll && (result.teamId === null || teamIds.has(result.teamId)));
   if (
-    new Set(state.teams.map((team) => team.id)).size !== state.teams.length ||
+    teamIds.size !== state.teams.length ||
     playerIds.size !== players.length ||
     wordIds.size !== state.words.length
   )
@@ -172,10 +180,9 @@ export const isGameState = (value: unknown): value is GameState => {
         playerIds.has(turn.playerId) &&
         Array.isArray(turn.results) &&
         turn.results.every((result: unknown) =>
-          isRecord(result) &&
-          isString(result.wordId) &&
+          isTurnResult(result) &&
           wordIds.has(result.wordId) &&
-          ["guessed", "skipped", "unanswered"].includes(String(result.status)),
+          hasValidResultTeam(result),
         ),
       )))
     return false;
@@ -234,6 +241,7 @@ export const isGameState = (value: unknown): value is GameState => {
         guessed.some((id) => !state.turn!.guessed.includes(id)) ||
         results.some(
           (result) =>
+            !hasValidResultTeam(result) ||
             !wordIds.has(result.wordId) ||
             (!state.deck.includes(result.wordId) &&
               !state.turn!.guessed.includes(result.wordId)),
@@ -252,12 +260,15 @@ export const isGameState = (value: unknown): value is GameState => {
   return true;
 };
 
-const migratePlayerAvatars = (value: unknown): unknown => {
+const migrateGame = (value: unknown): unknown => {
   if (!isRecord(value) || value.version !== 1 || !Array.isArray(value.teams))
     return value;
   const legacyIcons = ["fox", "bear", "rabbit", "frog", "cat", "owl"];
   return {
     ...value,
+    settings: isRecord(value.settings) && !("lastWordForAll" in value.settings)
+      ? { ...value.settings, lastWordForAll: false }
+      : value.settings,
     teams: value.teams.map((team: unknown) => {
       if (!isRecord(team) || !Array.isArray(team.players)) return team;
       const migrated: Record<string, unknown> = {
@@ -287,7 +298,7 @@ export const loadGame = (
   try {
     const raw = storage.getItem(storageKey);
     if (raw === null) return { state: null, issue: null };
-    const parsed = migratePlayerAvatars(JSON.parse(raw));
+    const parsed = migrateGame(JSON.parse(raw));
     return isGameState(parsed)
       ? { state: parsed, issue: null }
       : { state: null, issue: "corrupt" };

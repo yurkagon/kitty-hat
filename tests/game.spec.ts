@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { teamNames } from "../data/teams";
 
 const addPlayer = async (
   page: Page,
@@ -33,6 +34,7 @@ const configure = async (
   page: Page,
   timeout: "strict" | "confirm" = "confirm",
   captureSettings?: () => Promise<void>,
+  lastWordForAll = false,
 ) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Почати гру", exact: true }).click();
@@ -61,7 +63,10 @@ const configure = async (
     await page
       .getByRole("button", { name: "Зменшити: Час на хід", exact: true })
       .click();
-  if (timeout === "strict")
+  await expect(page.getByRole("checkbox", { name: "Останнє слово для всіх", exact: true })).toBeChecked();
+  if (!lastWordForAll)
+    await page.getByRole("checkbox", { name: "Останнє слово для всіх", exact: true }).uncheck();
+  if (timeout === "strict" && !lastWordForAll)
     await page.getByRole("radio", { name: /Сигнал — і крапка/ }).check();
   await captureSettings?.();
   await page.getByRole("button", { name: "Далі — загадуємо слова" }).click();
@@ -248,6 +253,62 @@ test("pause, privacy on return, one-time final word confirmation", async ({
   );
 });
 
+test("shared last word survives reload and awards only the chosen team, including corrections", async ({ page }) => {
+  await configure(page, "confirm", undefined, true);
+  await enterWords(page);
+  await page.clock.install();
+  await start(page);
+  await page.getByRole("button", { name: /Вгадано/ }).click();
+  const word = await page.locator(".word-slip h1").innerText();
+  await page.clock.fastForward(16000);
+  await expect(page.getByRole("heading", { name: "Яка команда вгадала?", exact: true })).toBeVisible();
+  await expect(page.locator(".last-word")).toHaveText(word);
+  await page.setViewportSize({ width: 320, height: 740 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: "test-results/shared-last-word-mobile.png", fullPage: true, animations: "disabled" });
+  await page.reload();
+  await page.getByRole("button", { name: "Продовжити гру", exact: true }).click();
+  await page.getByRole("button", { name: "Телефон у мене", exact: true }).click();
+  await expect(page.locator(".last-word")).toHaveText(word);
+  await page.getByRole("button", { name: "Медові · +1 бал", exact: true }).click();
+  await expect(page.locator(".score-item strong")).toHaveText(["1", "1"]);
+  await expect(page.locator(".earned-score")).toContainText("+1");
+  await page.getByRole("button", { name: "Бал: Медові", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Лісові · +1 бал", exact: true }).click();
+  await expect(page.locator(".score-item strong")).toHaveText(["2", "0"]);
+  await expect(page.locator(".earned-score")).toContainText("+2");
+  const sharedResult = page.locator(".turn-results").getByRole("switch").last();
+  await sharedResult.click();
+  await expect(sharedResult).not.toBeChecked();
+  await expect(page.locator(".score-item strong")).toHaveText(["1", "0"]);
+  await sharedResult.click();
+  await page.getByRole("dialog").getByRole("button", { name: "Медові · +1 бал", exact: true }).click();
+  await expect(page.locator(".score-item strong")).toHaveText(["1", "1"]);
+  await page.screenshot({ path: "test-results/shared-last-word-summary.png", fullPage: true, animations: "disabled" });
+  await page.reload();
+  await page.getByRole("button", { name: "Продовжити гру", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Бал: Медові", exact: true })).toBeVisible();
+  await expect(page.locator(".score-item strong")).toHaveText(["1", "1"]);
+  await page.getByRole("button", { name: "Наступна команда", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Твій вихід, Іра!", exact: true })).toBeVisible();
+});
+
+test("unanswered shared last word stays in the hat without adding points", async ({ page }) => {
+  await configure(page, "confirm", undefined, true);
+  await enterWords(page);
+  await page.clock.install();
+  await start(page);
+  await page.clock.fastForward(16000);
+  await page.getByRole("button", { name: "Ніхто не вгадав — назад у капелюх", exact: true }).click();
+  await expect(page.locator(".score-item strong")).toHaveText(["0", "0"]);
+  await expect(page.locator(".turn-results").getByRole("switch")).not.toBeChecked();
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("hat.game.v1")!));
+  expect(saved.settings.lastWordForAll).toBe(true);
+  expect(saved.deck).toHaveLength(4);
+  await page.getByRole("button", { name: "Наступна команда", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Твій вихід, Іра!", exact: true })).toBeVisible();
+});
+
 test("blocked storage still permits a complete setup", async ({ page }) => {
   await page.addInitScript(() => {
     Storage.prototype.setItem = () => {
@@ -290,11 +351,7 @@ test("empty teams, suggested and custom names, modal cancellation and removal pe
   });
   await expect(preset.locator("option")).toHaveText([
     "Власна назва",
-    "Половина помідора",
-    "Діти Новосельцевих",
-    "Хата на Татача",
-    "D.Seniors",
-    "Це комісія",
+    ...teamNames,
   ]);
   await preset.selectOption("Половина помідора");
   await expect(
@@ -529,7 +586,7 @@ test("visual evidence across mobile and desktop screens", async ({ page }) => {
   await capture("persons-320");
   const lastChoice = page
     .getByRole("dialog")
-    .getByRole("button", { name: /аватар 9$/ });
+    .locator(".person-options button").last();
   await lastChoice.scrollIntoViewIfNeeded();
   await expect(lastChoice).toBeInViewport();
   await capture("persons-bottom-320");
@@ -537,7 +594,7 @@ test("visual evidence across mobile and desktop screens", async ({ page }) => {
   await page.getByRole("dialog").evaluate((dialog) => {
     dialog.scrollTop = 0;
   });
-  await expect(lastChoice).toBeInViewport();
+  await expect(page.getByRole("dialog").getByRole("button", { name: "Хлопець", exact: true })).toBeInViewport();
   await capture("persons-desktop");
 });
 

@@ -83,6 +83,7 @@ export const App = () => {
   } | null>(null);
   const [wordError, setWordError] = useState("");
   const [audioIssue, setAudioIssue] = useState(false);
+  const [resultTarget, setResultTarget] = useState<number | null>(null);
   const { remainingMs, seconds } = useTurnTimer(state, dispatch);
   const players = getPlayers(state);
   const team = getTeam(state);
@@ -502,42 +503,59 @@ export const App = () => {
               </label>
             ))}
           </fieldset>
-          <fieldset className="choice-group">
-            <legend>Коли час закінчився</legend>
-            {(
-              [
+          <label className="sound-setting">
+            <span>
+              <strong>Останнє слово для всіх</strong>
+              <small>Після сигналу поточне слово можуть вгадувати всі команди. Бал отримує команда, яка вгадала.</small>
+            </span>
+            <input
+              type="checkbox"
+              aria-label="Останнє слово для всіх"
+              checked={state.settings.lastWordForAll}
+              onChange={() => dispatch({
+                type: "SET_SETTINGS",
+                patch: { lastWordForAll: !state.settings.lastWordForAll },
+              })}
+            />
+          </label>
+          {!state.settings.lastWordForAll && (
+            <fieldset className="choice-group">
+              <legend>Коли час закінчився</legend>
+              {(
                 [
-                  "confirm",
-                  "Уточнюємо останнє слово",
-                  "Можна зарахувати відповідь, що прозвучала до сигналу",
-                ],
-                [
-                  "strict",
-                  "Сигнал — і крапка",
-                  "Непідтверджене слово повертається в капелюх",
-                ],
-              ] as const
-            ).map(([value, title, description]) => (
-              <label className="choice" key={value}>
-                <input
-                  type="radio"
-                  name="timeout"
-                  value={value}
-                  checked={state.settings.timeout === value}
-                  onChange={() =>
-                    dispatch({
-                      type: "SET_SETTINGS",
-                      patch: { timeout: value },
-                    })
-                  }
-                />
-                <span>
-                  <strong>{title}</strong>
-                  <small>{description}</small>
-                </span>
-              </label>
-            ))}
-          </fieldset>
+                  [
+                    "confirm",
+                    "Уточнюємо останнє слово",
+                    "Можна зарахувати відповідь, що прозвучала до сигналу",
+                  ],
+                  [
+                    "strict",
+                    "Сигнал — і крапка",
+                    "Непідтверджене слово повертається в капелюх",
+                  ],
+                ] as const
+              ).map(([value, title, description]) => (
+                <label className="choice" key={value}>
+                  <input
+                    type="radio"
+                    name="timeout"
+                    value={value}
+                    checked={state.settings.timeout === value}
+                    onChange={() =>
+                      dispatch({
+                        type: "SET_SETTINGS",
+                        patch: { timeout: value },
+                      })
+                    }
+                  />
+                  <span>
+                    <strong>{title}</strong>
+                    <small>{description}</small>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+          )}
           <label className="sound-setting">
             <span>
               <strong>Звук таймера</strong>
@@ -850,35 +868,49 @@ export const App = () => {
           <div className="time-up">0:00</div>
           <h1>Час вийшов!</h1>
           <p className="intro">
-            Встигли вгадати останню записку
-            <br />
-            до сигналу?
+            {state.settings.lastWordForAll
+              ? "Останнє слово для всіх! Відповідати можуть усі команди. Правила підказок не змінюються."
+              : "Встигли вгадати останню записку до сигналу?"}
           </p>
           <div className="last-word">
             {state.words.find((word) => word.id === state.deck[0])?.text}
           </div>
-          <Button
-            onClick={() => dispatch({ type: "RESOLVE_TIMEOUT", guessed: true })}
-          >
-            Так, встигли!
-            <Icon name="plus" />
-          </Button>
+          {state.settings.lastWordForAll ? (
+            <>
+              <h2>Яка команда вгадала?</h2>
+              {state.teams.map((item) => (
+                <Button
+                  key={item.id}
+                  onClick={() => dispatch({ type: "RESOLVE_TIMEOUT", guessed: true, teamId: item.id })}
+                >
+                  {item.name} · +1 бал
+                </Button>
+              ))}
+            </>
+          ) : (
+            <Button onClick={() => dispatch({ type: "RESOLVE_TIMEOUT", guessed: true })}>
+              Так, встигли!
+              <Icon name="plus" />
+            </Button>
+          )}
           <Button
             variant="secondary"
             onClick={() =>
               dispatch({ type: "RESOLVE_TIMEOUT", guessed: false })
             }
           >
-            Ні, назад у капелюх
+            {state.settings.lastWordForAll ? "Ніхто не вгадав — назад у капелюх" : "Ні, назад у капелюх"}
             <Icon name="back" />
           </Button>
-          <p className="muted">Підтвердження доступне лише для цієї записки.</p>
+          <p className="muted">Показуй екран зі словом лише пояснювачу.</p>
         </section>
       );
 
     if (state.stage === "turn-summary") {
       const gained =
-        (state.turn?.guessed.length ?? 0) - (state.turn?.penalty ?? 0);
+        getTurnResults(state).filter((result) =>
+          result.status === "guessed" && (result.teamId === undefined || result.teamId === team.id),
+        ).length - (state.turn?.penalty ?? 0);
       return (
         <section className="center-screen summary-screen">
           <Avatar avatar={explainer.avatar} className="handoff-avatar" />
@@ -912,7 +944,20 @@ export const App = () => {
                 const word = state.words.find((item) => item.id === result.wordId)!;
                 return (
                   <li key={index}>
-                    <span>{word.text}</span>
+                    <span>
+                      {word.text}
+                      {result.teamId !== undefined && (
+                        <button
+                          type="button"
+                          className="text-button result-team"
+                          onClick={() => setResultTarget(index)}
+                        >
+                          {result.status === "guessed"
+                            ? `Бал: ${state.teams.find((item) => item.id === result.teamId)?.name}`
+                            : "Обрати команду"}
+                        </button>
+                      )}
+                    </span>
                     <button
                       type="button"
                       role="switch"
@@ -923,18 +968,22 @@ export const App = () => {
                         result.status !== "guessed" &&
                         state.turn!.guessed.includes(result.wordId)
                       }
-                      onClick={() =>
+                      onClick={() => {
+                        if (result.teamId !== undefined && result.status !== "guessed") {
+                          setResultTarget(index);
+                          return;
+                        }
                         dispatch({
                           type: "UPDATE_TURN_RESULT",
                           index,
                           status:
                             result.status !== "guessed"
                               ? "guessed"
-                              : state.settings.skip === "disabled"
+                              : result.teamId !== undefined || state.settings.skip === "disabled"
                                 ? "unanswered"
                                 : "skipped",
-                        })
-                      }
+                        });
+                      }}
                     >
                       {result.status === "guessed" ? "Вгадано" : "Не вгадано"}
                     </button>
@@ -1181,6 +1230,21 @@ export const App = () => {
               );
             })}
           </div>
+        </Modal>
+      )}
+      {resultTarget !== null && state.stage === "turn-summary" && (
+        <Modal title="Хто вгадав останнє слово?" onClose={() => setResultTarget(null)}>
+          {state.teams.map((item) => (
+            <Button
+              key={item.id}
+              onClick={() => {
+                dispatch({ type: "UPDATE_TURN_RESULT", index: resultTarget, status: "guessed", teamId: item.id });
+                setResultTarget(null);
+              }}
+            >
+              {item.name} · +1 бал
+            </Button>
+          ))}
         </Modal>
       )}
       {modal === "reset" && (

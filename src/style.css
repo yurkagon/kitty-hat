@@ -1074,6 +1074,13 @@ progress::-moz-progress-bar {
   cursor: pointer;
   transition: background 160ms ease;
 }
+.result-team {
+  display: block;
+  margin-top: 6px;
+  min-height: 44px;
+  font-size: 12px;
+  text-align: left;
+}
 .word-result-toggle::after {
   content: "";
   position: absolute;

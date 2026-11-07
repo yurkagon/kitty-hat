@@ -82,10 +82,10 @@ Real screenshots from the application. Click any image to view it at full size.
 
 - **A party on one device:** player-written notes, private handoffs, rotating explainers and three rounds with the same words.
 - **Personal cat avatars:** named portraits autofill an editable first name. The picker sorts people by first name then surname and groups them by first-name initial; surnames stay hidden in the UI.
-- **Flexible rules:** free skips, a one-point skip penalty or no skipping; strict timeouts or confirmation of an answer given before the signal.
+- **Flexible rules:** free skips, a one-point skip penalty or no skipping. **Last word for all** is enabled by default for new games: after the buzzer, all teams can guess the current word and you select the team that earns its point. Turn it off to use strict timeouts or confirmation of an answer given before the signal.
 - **Reliable timing:** pause/resume, sound cues in the last ten seconds, and an absolute deadline that prevents reloads from adding time.
-- **Editable turn results:** switch a word between guessed and not guessed before handing off; scores and the remaining hat update accordingly.
-- **Party statistics:** team scores by round, the top five explainers by successfully guessed words, and the highest/lowest word success rates with authors. Tied word results are shown together.
+- **Editable turn results:** switch a word between guessed and not guessed before handing off; scores and the remaining hat update accordingly. You can also correct which team earned a shared last word, without adding skip penalties.
+- **Party statistics:** team scores by round, the top five explainers by words their own team successfully guessed, and the highest/lowest word success rates with authors. Shared words won by another team count toward that team's score and word statistics, not the explainer's personal total. Tied word results are shown together.
 - **Local saves:** teams, settings, drafts, words, scores and turn history survive a refresh in the same browser and origin.
 - **Offline PWA:** a standalone app window, home-screen icons, and cached code, portraits, illustrations and fonts. Updates wait until the old app's tabs/windows are closed.
 
@@ -100,6 +100,8 @@ Open [the game](https://hat.dchurch.lviv.ua/) while online and let it finish loa
 Installation options depend on the browser; see [MDN's installation guide](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Installing).
 
 Saves belong to the current browser and site address. Clearing site data removes the saved party; there is no cloud backup or device sync. Hidden words are protected by the interface, not encryption. A suspended browser or muted phone may suppress sounds, so use the visible timer.
+
+Older saved games retain their previous timeout rules when loaded. New games enable **Last word for all** by default; replay keeps your selected rules.
 
 ## Getting started
 
