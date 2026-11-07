@@ -37,7 +37,8 @@ const isTurnResult = (value: unknown): value is TurnResult =>
   ["guessed", "skipped", "unanswered"].includes(String(value.status)) &&
   (value.teamId === undefined ||
     (value.status !== "skipped" &&
-      (isString(value.teamId) || (value.teamId === null && value.status === "unanswered"))));
+      (isString(value.teamId) || (value.teamId === null && value.status === "unanswered")))) &&
+  (value.playerId === undefined || (isString(value.playerId) && isString(value.teamId)));
 
 export const isGameState = (value: unknown): value is GameState => {
   if (
@@ -157,9 +158,13 @@ export const isGameState = (value: unknown): value is GameState => {
   const playerIds = new Set(players.map((player) => player.id));
   const wordIds = new Set(state.words.map((word) => word.id));
   const teamIds = new Set(state.teams.map((team) => team.id));
+  const playerTeams = new Map(
+    state.teams.flatMap((team) => team.players.map((player) => [player.id, team.id])),
+  );
   const hasValidResultTeam = (result: TurnResult) =>
-    result.teamId === undefined ||
-    (settings.lastWordForAll && (result.teamId === null || teamIds.has(result.teamId)));
+    (result.teamId === undefined ||
+      (settings.lastWordForAll && (result.teamId === null || teamIds.has(result.teamId)))) &&
+    (result.playerId === undefined || playerTeams.get(result.playerId) === result.teamId);
   if (
     teamIds.size !== state.teams.length ||
     playerIds.size !== players.length ||

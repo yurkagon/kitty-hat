@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useReducer, useState } from "react";
 import persons from "../data/persons/data.json";
 import { teamNames } from "../data/teams";
-import { Avatar, Button, Icon, Modal, Scoreboard, Stepper } from "./components";
+import { Avatar, Button, GuesserPicker, Icon, Modal, Scoreboard, Stepper } from "./components";
 import {
   collectWords,
   createGame,
@@ -506,7 +506,7 @@ export const App = () => {
           <label className="sound-setting">
             <span>
               <strong>Останнє слово для всіх</strong>
-              <small>Після сигналу поточне слово можуть вгадувати всі команди. Бал отримує команда, яка вгадала.</small>
+              <small>Після сигналу поточне слово можуть вгадувати всі. Обери гравця — бал отримає і він, і його команда.</small>
             </span>
             <input
               type="checkbox"
@@ -877,15 +877,11 @@ export const App = () => {
           </div>
           {state.settings.lastWordForAll ? (
             <>
-              <h2>Яка команда вгадала?</h2>
-              {state.teams.map((item) => (
-                <Button
-                  key={item.id}
-                  onClick={() => dispatch({ type: "RESOLVE_TIMEOUT", guessed: true, teamId: item.id })}
-                >
-                  {item.name} · +1 бал
-                </Button>
-              ))}
+              <h2>Хто вгадав?</h2>
+              <GuesserPicker
+                teams={state.teams}
+                onSelect={(playerId) => dispatch({ type: "RESOLVE_TIMEOUT", guessed: true, playerId })}
+              />
             </>
           ) : (
             <Button onClick={() => dispatch({ type: "RESOLVE_TIMEOUT", guessed: true })}>
@@ -942,6 +938,7 @@ export const App = () => {
             <ol>
               {getTurnResults(state).map((result, index) => {
                 const word = state.words.find((item) => item.id === result.wordId)!;
+                const guesser = players.find((player) => player.id === result.playerId);
                 return (
                   <li key={index}>
                     <span>
@@ -953,8 +950,8 @@ export const App = () => {
                           onClick={() => setResultTarget(index)}
                         >
                           {result.status === "guessed"
-                            ? `Бал: ${state.teams.find((item) => item.id === result.teamId)?.name}`
-                            : "Обрати команду"}
+                            ? `Бал: ${guesser ? `${guesser.name} · ` : ""}${state.teams.find((item) => item.id === result.teamId)?.name}`
+                            : "Обрати гравця"}
                         </button>
                       )}
                     </span>
@@ -1069,7 +1066,7 @@ export const App = () => {
           <div className="party-stats">
             <section aria-labelledby="player-ranking-title">
               <h2 id="player-ranking-title">Топ-5 гравців</h2>
-              <p className="muted">За словами, які команда вгадала під час пояснення гравця. Без віднімання штрафів. Однаковий результат — спільне місце.</p>
+              <p className="muted">За словами, які команда вгадала під час пояснення гравця, та його особистими відповідями на останнє слово для всіх. Без віднімання штрафів. Однаковий результат — спільне місце.</p>
               <ol className="player-ranking">
                 {stats.players.slice(0, 5).map(({ player, guessed }) => (
                   <li key={player.id}>
@@ -1234,17 +1231,13 @@ export const App = () => {
       )}
       {resultTarget !== null && state.stage === "turn-summary" && (
         <Modal title="Хто вгадав останнє слово?" onClose={() => setResultTarget(null)}>
-          {state.teams.map((item) => (
-            <Button
-              key={item.id}
-              onClick={() => {
-                dispatch({ type: "UPDATE_TURN_RESULT", index: resultTarget, status: "guessed", teamId: item.id });
-                setResultTarget(null);
-              }}
-            >
-              {item.name} · +1 бал
-            </Button>
-          ))}
+          <GuesserPicker
+            teams={state.teams}
+            onSelect={(playerId) => {
+              dispatch({ type: "UPDATE_TURN_RESULT", index: resultTarget, status: "guessed", playerId });
+              setResultTarget(null);
+            }}
+          />
         </Modal>
       )}
       {modal === "reset" && (

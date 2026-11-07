@@ -1081,6 +1081,36 @@ progress::-moz-progress-bar {
   font-size: 12px;
   text-align: left;
 }
+.guesser-picker {
+  width: 100%;
+  max-width: 380px;
+  display: grid;
+  gap: 20px;
+}
+.guesser-team {
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+.guesser-team h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.guesser-team .guesser-option {
+  margin: 0;
+  padding: 8px 12px;
+  text-align: left;
+}
+.guesser-option .avatar {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+.guesser-option span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .word-result-toggle::after {
   content: "";
   position: absolute;

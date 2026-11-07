@@ -124,6 +124,35 @@ export const Avatar = ({
   />
 );
 
+export const GuesserPicker = ({
+  teams,
+  onSelect,
+}: {
+  teams: Team[];
+  onSelect: (playerId: string) => void;
+}) => (
+  <div className="guesser-picker">
+    {teams.map((team) => (
+      <section className="guesser-team" key={team.id}>
+        <h3>{team.name}</h3>
+        {team.players.map((player) => (
+          <Button
+            key={player.id}
+            variant="secondary"
+            className="guesser-option"
+            aria-label={`${player.name}, ${team.name} · +1 бал`}
+            onClick={() => onSelect(player.id)}
+          >
+            <Avatar avatar={player.avatar} />
+            <span>{player.name}</span>
+            <b>+1</b>
+          </Button>
+        ))}
+      </section>
+    ))}
+  </div>
+);
+
 export const Stepper = ({
   label,
   description,

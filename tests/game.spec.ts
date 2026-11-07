@@ -253,7 +253,7 @@ test("pause, privacy on return, one-time final word confirmation", async ({
   );
 });
 
-test("shared last word survives reload and awards only the chosen team, including corrections", async ({ page }) => {
+test("shared last word credits the chosen player and team through corrections, reload and final ranking", async ({ page }) => {
   await configure(page, "confirm", undefined, true);
   await enterWords(page);
   await page.clock.install();
@@ -261,7 +261,7 @@ test("shared last word survives reload and awards only the chosen team, includin
   await page.getByRole("button", { name: /Вгадано/ }).click();
   const word = await page.locator(".word-slip h1").innerText();
   await page.clock.fastForward(16000);
-  await expect(page.getByRole("heading", { name: "Яка команда вгадала?", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Хто вгадав?", exact: true })).toBeVisible();
   await expect(page.locator(".last-word")).toHaveText(word);
   await page.setViewportSize({ width: 320, height: 740 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -270,11 +270,14 @@ test("shared last word survives reload and awards only the chosen team, includin
   await page.getByRole("button", { name: "Продовжити гру", exact: true }).click();
   await page.getByRole("button", { name: "Телефон у мене", exact: true }).click();
   await expect(page.locator(".last-word")).toHaveText(word);
-  await page.getByRole("button", { name: "Медові · +1 бал", exact: true }).click();
+  await page.getByRole("button", { name: "Іра, Медові · +1 бал", exact: true }).click();
   await expect(page.locator(".score-item strong")).toHaveText(["1", "1"]);
   await expect(page.locator(".earned-score")).toContainText("+1");
-  await page.getByRole("button", { name: "Бал: Медові", exact: true }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "Лісові · +1 бал", exact: true }).click();
+  await page.getByRole("button", { name: "Бал: Іра · Медові", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Марко, Медові · +1 бал", exact: true }).click();
+  await expect(page.locator(".score-item strong")).toHaveText(["1", "1"]);
+  await page.getByRole("button", { name: "Бал: Марко · Медові", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Юра, Лісові · +1 бал", exact: true }).click();
   await expect(page.locator(".score-item strong")).toHaveText(["2", "0"]);
   await expect(page.locator(".earned-score")).toContainText("+2");
   const sharedResult = page.locator(".turn-results").getByRole("switch").last();
@@ -282,15 +285,30 @@ test("shared last word survives reload and awards only the chosen team, includin
   await expect(sharedResult).not.toBeChecked();
   await expect(page.locator(".score-item strong")).toHaveText(["1", "0"]);
   await sharedResult.click();
-  await page.getByRole("dialog").getByRole("button", { name: "Медові · +1 бал", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Марко, Медові · +1 бал", exact: true }).click();
   await expect(page.locator(".score-item strong")).toHaveText(["1", "1"]);
   await page.screenshot({ path: "test-results/shared-last-word-summary.png", fullPage: true, animations: "disabled" });
   await page.reload();
   await page.getByRole("button", { name: "Продовжити гру", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Бал: Медові", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Бал: Марко · Медові", exact: true })).toBeVisible();
   await expect(page.locator(".score-item strong")).toHaveText(["1", "1"]);
   await page.getByRole("button", { name: "Наступна команда", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Твій вихід, Іра!", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Почати хід", exact: true }).click();
+  for (let word = 0; word < 2; word++)
+    await page.getByRole("button", { name: /Вгадано/ }).click();
+  await page.getByRole("button", { name: "До наступного раунду", exact: true }).click();
+  for (let round = 1; round < 3; round++) {
+    await start(page);
+    for (let word = 0; word < 4; word++)
+      await page.getByRole("button", { name: /Вгадано/ }).click();
+    await page.getByRole("button", { name: round === 2 ? "До результатів" : "До наступного раунду", exact: true }).click();
+  }
+  await expect(page.locator(".player-ranking li").first()).toContainText("Марко");
+  await expect(page.locator(".player-guessed b")).toHaveText(["5", "4", "2", "1"]);
+  await page.reload();
+  await page.getByRole("button", { name: "Переглянути результат", exact: true }).click();
+  await expect(page.locator(".player-guessed b")).toHaveText(["5", "4", "2", "1"]);
 });
 
 test("unanswered shared last word stays in the hat without adding points", async ({ page }) => {
