@@ -6,9 +6,11 @@ import {
   createGame,
   gameReducer,
   getExplainer,
+  getCollectionQueue,
   getGameStats,
   getPlayers,
   getTeam,
+  getTeamPlayers,
   getTurnResults,
   makePlayer,
   makeTeam,
@@ -18,6 +20,7 @@ import {
   type Action,
   type GameState,
   type Settings,
+  type Team,
 } from "./game";
 import { isGameState, loadGame, saveGame } from "./storage";
 
@@ -95,7 +98,7 @@ describe("party lifecycle", () => {
     });
     expect(getPlayers(state)).toEqual([]);
     expect(isGameState(state)).toBe(true);
-    expect(isGameState({ ...state, stage: "settings" })).toBe(false);
+    expect(isGameState({ ...state, stage: "settings" })).toBe(true);
   });
 
   it("ships every catalog portrait and fills names only for people", () => {
@@ -189,6 +192,144 @@ describe("party lifecycle", () => {
         (team) => totalScore(team) === 0 && team.nextPlayer === 0,
       ),
     ).toBe(true);
+  });
+});
+
+describe("roster editing during a party", () => {
+  const editRoster = (state: GameState, edit: (teams: Team[]) => void) => {
+    const teams = state.teams.map((team) => ({
+      ...team, players: getTeamPlayers(team).map((player) => ({ ...player })),
+    }));
+    edit(teams);
+    return gameReducer(state, { type: "SET_ROSTER", teams, order: collectWords(state).map((word) => word.id) });
+  };
+  const newcomer = () => ({ ...makePlayer(persons[0]), name: "New player" });
+  const collecting = () => gameReducer(gameReducer(namedGame(), { type: "GO_SETTINGS" }), { type: "BEGIN_WORDS" });
+
+  it("appends a new writer without changing whose private draft is open", () => {
+    let state = collecting();
+    state = gameReducer(state, { type: "OPEN_WORDS" });
+    state = gameReducer(state, { type: "DRAFT_WORD", index: 0, text: "Secret" });
+    const queue = getCollectionQueue(state);
+    const joined = newcomer();
+    state = editRoster(state, (teams) => teams[0].players.push(joined));
+    expect(getCollectionQueue(state)).toEqual([...queue, joined.id]);
+    expect(state.stage).toBe("words");
+    expect(state.drafts[queue[0]][0]).toBe("Secret");
+    expect(state.drafts[joined.id]).toEqual(Array(5).fill(""));
+    expect(isGameState(state)).toBe(true);
+    const legacy = { ...state, collectionQueue: undefined };
+    expect(getCollectionQueue(legacy)).toEqual(getPlayers(state).map((player) => player.id));
+  });
+
+  it("preserves a departing writer's notes and hands off to the next person", () => {
+    let state = gameReducer(collecting(), { type: "OPEN_WORDS" });
+    const departed = getCollectionQueue(state)[0];
+    state = gameReducer(state, { type: "DRAFT_WORD", index: 0, text: "Already written" });
+    const nextWriter = getCollectionQueue(state)[1];
+    state = editRoster(state, (teams) => { teams[0].players.shift(); teams[0].players.push(newcomer()); });
+    expect(state.stage).toBe("word-handoff");
+    expect(getCollectionQueue(state)[0]).toBe(nextWriter);
+    expect(collectWords(state)).toEqual([{ id: `${departed}:0`, text: "Already written", playerId: departed }]);
+    expect(getPlayers(state).find((player) => player.id === departed)?.active).toBe(false);
+    expect(isGameState(state)).toBe(true);
+  });
+
+  it("can finish collection when the last writer leaves, then add a replacement without new words", () => {
+    let state = collecting();
+    for (let writer = 0; writer < 3; writer++) {
+      state = gameReducer(state, { type: "OPEN_WORDS" });
+      for (let index = 0; index < 5; index++)
+        state = gameReducer(state, { type: "DRAFT_WORD", index, text: `Word ${writer}-${index}` });
+      state = gameReducer(state, { type: "SUBMIT_WORDS", order: [] });
+    }
+    state = editRoster(state, (teams) => { teams[1].players.pop(); });
+    expect(state.stage).toBe("round-intro");
+    expect(state.words).toHaveLength(15);
+    expect(isGameState(state)).toBe(true);
+    expect(gameReducer(state, { type: "ACK_ROUND" })).toBe(state);
+    const words = state.words;
+    state = editRoster(state, (teams) => { teams[1].players.push(newcomer()); });
+    expect(state.words).toBe(words);
+    expect(state.drafts).toEqual({});
+    expect(startTurn(state).stage).toBe("playing");
+    expect(isGameState(startTurn(state))).toBe(true);
+  });
+
+  it("keeps a paused turn, score, deck and remaining time when a teammate leaves and another joins", () => {
+    let state = gameReducer(startTurn(readyGame()), { type: "GUESS", now: 2000 });
+    state = gameReducer(state, { type: "PAUSE", now: 4000 });
+    const before = state;
+    state = editRoster(state, (teams) => { teams[0].players.pop(); teams[0].players.push(newcomer()); });
+    expect(state.turn).toBe(before.turn);
+    expect(state.words).toBe(before.words);
+    expect(state.deck).toBe(before.deck);
+    expect(state.teams[0].scores).toEqual([1, 0, 0]);
+    expect(state.turn?.remainingMs).toBe(12000);
+    expect(isGameState(state)).toBe(true);
+    state = gameReducer(state, { type: "RESUME", now: 100000 });
+    expect(state.turn?.deadline).toBe(112000);
+    expect(isGameState(state)).toBe(true);
+  });
+
+  it("finishes a departing explainer's turn and skips them in later rotations while retaining their stats", () => {
+    let state = gameReducer(startTurn(readyGame({ timeout: "strict" })), { type: "GUESS", now: 2000 });
+    state = gameReducer(state, { type: "PAUSE", now: 4000 });
+    const departed = state.turn!.playerId;
+    const nextPlayer = state.teams[0].players[1].id;
+    state = editRoster(state, (teams) => { teams[0].players.shift(); teams[0].players.push(newcomer()); });
+    expect(state.stage).toBe("turn-summary");
+    expect(getExplainer(state).id).toBe(departed);
+    expect(state.teams[0].scores).toEqual([1, 0, 0]);
+    expect(isGameState(state)).toBe(true);
+    state = nextTurn(state);
+    expect(getGameStats(state)?.players.find(({ player }) => player.id === departed)?.guessed).toBe(1);
+    state = startTurn(state);
+    state = gameReducer(state, { type: "EXPIRE", now: 16000 });
+    state = nextTurn(state);
+    expect(getExplainer(state).id).toBe(nextPlayer);
+    expect(createGame(state).teams[0].players.some((player) => player.id === departed)).toBe(false);
+    expect(isGameState(state)).toBe(true);
+  });
+
+  it("saves an empty team but blocks resuming until it has enough players", () => {
+    let state = gameReducer(startTurn(readyGame()), { type: "PAUSE", now: 4000 });
+    const words = state.words;
+    state = editRoster(state, (teams) => { teams[1].players = []; });
+    expect(getTeamPlayers(state.teams[1])).toEqual([]);
+    expect(isGameState(state)).toBe(true);
+    expect(loadGame({ getItem: () => JSON.stringify(state) }).state).toEqual(state);
+    expect(gameReducer(state, { type: "RESUME", now: 5000 })).toBe(state);
+    state = editRoster(state, (teams) => { teams[1].players.push(newcomer(), newcomer()); });
+    expect(state.words).toBe(words);
+    expect(gameReducer(state, { type: "RESUME", now: 5000 }).stage).toBe("playing");
+  });
+
+  it("retains a departed shared-word winner's personal credit without allowing new guesses for them", () => {
+    let state = gameReducer(startTurn(readyGame({ lastWordForAll: true })), { type: "EXPIRE", now: 16000 });
+    const winner = state.teams[1].players[0].id;
+    state = gameReducer(state, { type: "RESOLVE_TIMEOUT", guessed: true, playerId: winner });
+    state = editRoster(state, (teams) => { teams[1].players.shift(); teams[1].players.push(newcomer()); });
+    expect(isGameState(state)).toBe(true);
+    state = nextTurn(state);
+    expect(getGameStats(state)?.players.find(({ player }) => player.id === winner)?.guessed).toBe(1);
+    state = gameReducer(startTurn(state, 20000), { type: "EXPIRE", now: 35000 });
+    expect(gameReducer(state, { type: "RESOLVE_TIMEOUT", guessed: true, playerId: winner })).toBe(state);
+  });
+
+  it("rejects changing the team list, duplicate IDs and unsafe saves", () => {
+    const state = readyGame();
+    expect(gameReducer(state, { type: "SET_ROSTER", teams: [...state.teams, makeTeam(2)] })).toBe(state);
+    expect(editRoster(state, (teams) => { teams.pop(); })).toBe(state);
+    expect(editRoster(state, (teams) => { teams[1].players.push(teams[0].players[0]); })).toBe(state);
+    expect(editRoster(state, (teams) => { teams[0].players[0].name = " "; })).toBe(state);
+    expect(editRoster(state, (teams) => { teams[0].players[0].avatar = "missing.webp"; })).toBe(state);
+    const collection = collecting();
+    const queue = getCollectionQueue(collection);
+    expect(isGameState({ ...collection, collectionQueue: [queue[0], queue[0]] })).toBe(false);
+    expect(isGameState({ ...collection, collectionQueue: ["missing"] })).toBe(false);
+    expect(isGameState({ ...state, collectionQueue: queue })).toBe(false);
+    expect(isGameState({ ...collection, teams: collection.teams.map((team) => ({ ...team, players: team.players.map((player) => ({ ...player, active: false })) })) })).toBe(false);
   });
 });
 

@@ -1360,6 +1360,9 @@ dialog::backdrop {
   }
 }
 @media (max-width: 359px) {
+  .app-header {
+    gap: 4px;
+  }
   .app-shell {
     padding-left: 16px;
     padding-right: 16px;

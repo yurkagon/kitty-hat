@@ -1,6 +1,6 @@
 import {
   avatarIds,
-  getExplainer,
+  getCollectionQueue,
   getPlayers,
   getTeam,
   setupIsValid,
@@ -93,6 +93,7 @@ export const isGameState = (value: unknown): value is GameState => {
             isString(player.name) &&
             player.name.length <= 40 &&
             isString(player.avatar) &&
+            (player.active === undefined || typeof player.active === "boolean") &&
             (avatarIds as readonly string[]).includes(player.avatar),
         ) &&
         Array.isArray(team.scores) &&
@@ -114,6 +115,8 @@ export const isGameState = (value: unknown): value is GameState => {
   )
     return false;
   if (!isInteger(value.collectionIndex) || value.collectionIndex < 0)
+    return false;
+  if (value.collectionQueue !== undefined && !isStringArray(value.collectionQueue))
     return false;
   if (
     !Array.isArray(value.words) ||
@@ -201,15 +204,24 @@ export const isGameState = (value: unknown): value is GameState => {
     )
   )
     return false;
-  if (state.stage !== "teams" && !setupIsValid(state)) return false;
+  if (state.stage !== "teams" && state.teams.some((team) =>
+    !team.name.trim() || team.players.some((player) => !player.name.trim()),
+  )) return false;
+  if (state.stage === "playing" && !setupIsValid(state)) return false;
+  const queue = getCollectionQueue(state);
+  if (state.collectionQueue !== undefined && (
+    new Set(queue).size !== queue.length ||
+    queue.some((id) => !players.some((player) => player.id === id && player.active !== false)) ||
+    (!["word-handoff", "words"].includes(state.stage) && queue.length > 0)
+  )) return false;
   if (
     ["word-handoff", "words"].includes(state.stage) &&
-    players.some((player) => !state.drafts[player.id])
+    (queue.some((id) => !state.drafts[id]) || (!queue.length && setupIsValid(state)))
   )
     return false;
   if (
     !["teams", "settings", "word-handoff", "words"].includes(state.stage) &&
-    state.words.length !== players.length * settings.wordsPerPlayer
+    state.words.length === 0
   )
     return false;
   if (
@@ -223,7 +235,11 @@ export const isGameState = (value: unknown): value is GameState => {
     if (
       !state.turn ||
       state.turn.teamId !== getTeam(state).id ||
-      state.turn.playerId !== getExplainer(state).id
+      !getTeam(state).players.some((player) => player.id === state.turn!.playerId) ||
+      (["playing", "paused"].includes(state.stage) && (
+        getTeam(state).players[getTeam(state).nextPlayer]?.id !== state.turn.playerId ||
+        getTeam(state).players[getTeam(state).nextPlayer]?.active === false
+      ))
     )
       return false;
     if (
