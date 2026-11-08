@@ -7,9 +7,11 @@ import {
   createGame,
   gameReducer,
   getExplainer,
+  getCollectionQueue,
   getGameStats,
   getPlayers,
   getTeam,
+  getTeamPlayers,
   getTurnResults,
   makePlayer,
   makeTeam,
@@ -17,6 +19,7 @@ import {
   setupIsValid,
   shuffle,
   totalScore,
+  type Team,
 } from "./game";
 import { loadGame, saveGame } from "./storage";
 import { unlockAudio, useTurnTimer } from "./timer";
@@ -84,11 +87,12 @@ export const App = () => {
   const [wordError, setWordError] = useState("");
   const [audioIssue, setAudioIssue] = useState(false);
   const [resultTarget, setResultTarget] = useState<number | null>(null);
+  const [rosterDraft, setRosterDraft] = useState<Team[] | null>(null);
   const { remainingMs, seconds } = useTurnTimer(state, dispatch);
   const players = getPlayers(state);
   const team = getTeam(state);
   const explainer = getExplainer(state);
-  const writer = players[state.collectionIndex];
+  const writer = players.find((player) => player.id === getCollectionQueue(state)[0])!;
   const round = rounds[state.round];
 
   useEffect(() => {
@@ -115,7 +119,69 @@ export const App = () => {
   useEffect(() => {
     window.scrollTo(0, 0);
     setWordError("");
-  }, [state.stage, state.collectionIndex, home]);
+  }, [state.stage, state.collectionIndex, home, writer?.id]);
+
+  const openRoster = () => {
+    if (state.stage === "playing") dispatch({ type: "PAUSE", now: Date.now() });
+    if (secretStages.includes(state.stage)) setCovered(true);
+    setRosterDraft(state.teams.map((item) => ({ ...item, players: getTeamPlayers(item).map((player) => ({ ...player })) })));
+  };
+
+  const renderPlayers = (item: Team, teamIndex: number) => (
+    <>
+      <div className="players-label">Гравці <span>{getTeamPlayers(item).length}</span></div>
+      {getTeamPlayers(item).length === 0 && <p className="players-empty">Поки нікого. Додай першого гравця.</p>}
+      {getTeamPlayers(item).map((player, playerIndex) => (
+        <div className="player-editor" key={player.id}>
+          <div className="player-input">
+            <button
+              type="button"
+              className="avatar-button"
+              aria-label={`Змінити аватар гравця ${playerIndex + 1}, команда ${teamIndex + 1}`}
+              onClick={() => setPersonTarget({ teamId: item.id, playerId: player.id })}
+            >
+              <Avatar avatar={player.avatar} />
+            </button>
+            <input
+              aria-label={`Ім’я гравця ${playerIndex + 1}, команда ${teamIndex + 1}`}
+              placeholder={`Ім’я гравця ${playerIndex + 1}`}
+              maxLength={40}
+              value={player.name}
+              onChange={(event) => {
+                const name = event.target.value;
+                if (rosterDraft) setRosterDraft(rosterDraft.map((entry) => entry.id === item.id
+                  ? { ...entry, players: entry.players.map((person) => person.id === player.id ? { ...person, name } : person) }
+                  : entry));
+                else dispatch({ type: "UPDATE_PLAYER", teamId: item.id, playerId: player.id, patch: { name } });
+              }}
+              required
+            />
+            <button
+              type="button"
+              className="icon-button"
+              aria-label={`Видалити гравця ${playerIndex + 1}, команда ${teamIndex + 1}`}
+              onClick={() => {
+                if (rosterDraft) setRosterDraft(rosterDraft.map((entry) => entry.id === item.id
+                  ? { ...entry, players: entry.players.filter((person) => person.id !== player.id) }
+                  : entry));
+                else dispatch({ type: "REMOVE_PLAYER", teamId: item.id, playerId: player.id });
+              }}
+            >
+              <Icon name="minus" size={18} />
+            </button>
+          </div>
+        </div>
+      ))}
+      <button
+        type="button"
+        className="text-button add-player"
+        aria-label={`Додати гравця в команду ${teamIndex + 1}`}
+        onClick={() => setPersonTarget({ teamId: item.id })}
+      >
+        <Icon name="plus" size={18} /> Додати гравця
+      </button>
+    </>
+  );
 
   const prepareAudio = () => {
     if (state.settings.sound)
@@ -235,6 +301,15 @@ export const App = () => {
         </section>
       );
 
+    if (state.stage !== "teams" && state.stage !== "finished" && !setupIsValid(state))
+      return (
+        <section className="center-screen">
+          <h1>Потрібні гравці</h1>
+          <p className="intro">Для продовження потрібно щонайменше по двоє гравців у кожній команді. Слова й рахунок збережені.</p>
+          <Button onClick={openRoster}>Редагувати склад команд<Icon name="edit" /></Button>
+        </section>
+      );
+
     if (covered && secretStages.includes(state.stage))
       return (
         <section className="center-screen privacy-screen">
@@ -335,71 +410,7 @@ export const App = () => {
                     ))}
                   </select>
                 </label>
-                <div className="players-label">
-                  Гравці <span>{item.players.length}</span>
-                </div>
-                {item.players.length === 0 && (
-                  <p className="players-empty">
-                    Поки нікого. Додай першого гравця.
-                  </p>
-                )}
-                {item.players.map((player, playerIndex) => (
-                  <div className="player-editor" key={player.id}>
-                    <div className="player-input">
-                      <button
-                        type="button"
-                        className="avatar-button"
-                        aria-label={`Змінити аватар гравця ${playerIndex + 1}, команда ${teamIndex + 1}`}
-                        onClick={() =>
-                          setPersonTarget({
-                            teamId: item.id,
-                            playerId: player.id,
-                          })
-                        }
-                      >
-                        <Avatar avatar={player.avatar} />
-                      </button>
-                      <input
-                        aria-label={`Ім’я гравця ${playerIndex + 1}, команда ${teamIndex + 1}`}
-                        placeholder={`Ім’я гравця ${playerIndex + 1}`}
-                        maxLength={40}
-                        value={player.name}
-                        onChange={(event) =>
-                          dispatch({
-                            type: "UPDATE_PLAYER",
-                            teamId: item.id,
-                            playerId: player.id,
-                            patch: { name: event.target.value },
-                          })
-                        }
-                        required
-                      />
-                      <button
-                        type="button"
-                        className="icon-button"
-                        aria-label={`Видалити гравця ${playerIndex + 1}, команда ${teamIndex + 1}`}
-                        onClick={() =>
-                          dispatch({
-                            type: "REMOVE_PLAYER",
-                            teamId: item.id,
-                            playerId: player.id,
-                          })
-                        }
-                      >
-                        <Icon name="minus" size={18} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  className="text-button add-player"
-                  aria-label={`Додати гравця в команду ${teamIndex + 1}`}
-                  onClick={() => setPersonTarget({ teamId: item.id })}
-                >
-                  <Icon name="plus" size={18} />
-                  Додати гравця
-                </button>
+                {renderPlayers(item, teamIndex)}
               </article>
             ))}
           </div>
@@ -609,12 +620,15 @@ export const App = () => {
             <br />
             Інші гравці їх поки не побачать.
           </p>
-          <Button onClick={() => dispatch({ type: "OPEN_WORDS" })}>
+          <Button onClick={() => {
+            setCovered(false);
+            dispatch({ type: "OPEN_WORDS" });
+          }}>
             Це я, почнімо
             <Icon name="arrow" />
           </Button>
           <p className="handoff-progress">
-            Гравець {state.collectionIndex + 1} із {players.length}
+            Гравців у черзі: {getCollectionQueue(state).length}
           </p>
         </section>
       );
@@ -745,6 +759,7 @@ export const App = () => {
           <Button
             onClick={() => {
               prepareAudio();
+              setCovered(false);
               dispatch({ type: "START_TURN", now: Date.now() });
             }}
           >
@@ -914,6 +929,7 @@ export const App = () => {
           <p className="intro">
             {explainer.name} · {team.name}
           </p>
+          {explainer.active === false && <p className="notice">Гравець вийшов із гри. Результати його ходу збережено.</p>}
           <div className="earned-score">
             {gained > 0 ? "+" : ""}
             {gained}
@@ -1131,6 +1147,11 @@ export const App = () => {
           </span>
         </button>
         <div className="header-actions">
+          {hasSession && (
+            <button type="button" className="icon-button" aria-label="Редагувати склад команд" title="Редагувати склад команд" onClick={openRoster}>
+              <Icon name="edit" />
+            </button>
+          )}
           <button
             type="button"
             className="icon-button"
@@ -1173,6 +1194,29 @@ export const App = () => {
         <span>Трохи слів. Багато сміху.</span>
         <span>Зроблено для своїх</span>
       </footer>
+      {rosterDraft && !personTarget && (
+        <Modal title="Склад команд" onClose={() => setRosterDraft(null)}>
+          <p>Змінюй гравців у наявних командах. Зміни застосуються після збереження. Відкриття редактора ставить активний хід на паузу.</p>
+          <p>{["teams", "settings", "word-handoff", "words"].includes(state.stage)
+            ? "Нові гравці теж додаватимуть слова."
+            : "Нові гравці долучаються без додавання слів."} Якщо пояснювач піде, його хід завершиться зі збереженням балів.</p>
+          <div className="team-list">
+            {rosterDraft.map((item, index) => (
+              <article className={`team-editor team-color-${index % 6}`} key={item.id}>
+                <h3>{item.name}</h3>
+                {renderPlayers(item, index)}
+              </article>
+            ))}
+          </div>
+          <Button
+            disabled={rosterDraft.some((item) => item.players.some((player) => !player.name.trim()))}
+            onClick={() => {
+              dispatch({ type: "SET_ROSTER", teams: rosterDraft, order: shuffle(collectWords(state).map((word) => word.id)) });
+              setRosterDraft(null);
+            }}
+          >Зберегти склад<Icon name="check" /></Button>
+        </Modal>
+      )}
       {personTarget && (
         <Modal
           title={
@@ -1198,7 +1242,16 @@ export const App = () => {
                     type="button"
                     aria-label={label ?? `${person.name}, аватар ${persons.indexOf(person) + 1}`}
                     onClick={() => {
-                      if (personTarget.playerId) {
+                      if (rosterDraft) {
+                        setRosterDraft(rosterDraft.map((item) => item.id !== personTarget.teamId ? item : {
+                          ...item,
+                          players: personTarget.playerId
+                            ? item.players.map((player) => player.id === personTarget.playerId
+                              ? { ...player, avatar: person.img, ...(label ? {} : { name: person.name }) }
+                              : player)
+                            : [...item.players, makePlayer(person)],
+                        }));
+                      } else if (personTarget.playerId) {
                         dispatch({
                           type: "UPDATE_PLAYER",
                           teamId: personTarget.teamId,

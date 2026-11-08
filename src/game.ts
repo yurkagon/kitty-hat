@@ -2,7 +2,8 @@ import persons from "../data/persons/data.json";
 
 export const avatarIds = persons.map((person) => person.img);
 export type AvatarId = (typeof avatarIds)[number];
-export type Player = { id: string; name: string; avatar: AvatarId };
+// Departed players remain as authors and in the party's scoring history.
+export type Player = { id: string; name: string; avatar: AvatarId; active?: boolean };
 export type Team = {
   id: string;
   name: string;
@@ -58,6 +59,7 @@ export type GameState = {
   settings: Settings;
   drafts: Record<string, string[]>;
   collectionIndex: number;
+  collectionQueue?: string[];
   words: Word[];
   deck: string[];
   round: number;
@@ -67,6 +69,7 @@ export type GameState = {
 };
 export type Action =
   | { type: "NEW_GAME"; state: GameState }
+  | { type: "SET_ROSTER"; teams: Pick<Team, "id" | "players">[]; order?: string[] }
   | { type: "ADD_TEAM"; team: Team }
   | { type: "REMOVE_TEAM"; id: string }
   | {
@@ -123,6 +126,7 @@ export const createGame = (previous?: GameState): GameState => ({
   teams: previous
     ? previous.teams.map((team) => ({
         ...team,
+        players: getTeamPlayers(team),
         scores: [0, 0, 0],
         nextPlayer: 0,
       }))
@@ -149,9 +153,15 @@ export const createGame = (previous?: GameState): GameState => ({
 
 export const getPlayers = (state: GameState) =>
   state.teams.flatMap((team) => team.players);
+export const getTeamPlayers = (team: Team) =>
+  team.players.filter((player) => player.active !== false);
+export const getCollectionQueue = (state: GameState) =>
+  state.collectionQueue ?? getPlayers(state).slice(state.collectionIndex).map((player) => player.id);
 export const getTeam = (state: GameState) => state.teams[state.teamIndex];
 export const getExplainer = (state: GameState) =>
-  getTeam(state).players[getTeam(state).nextPlayer];
+  state.turn
+    ? getTeam(state).players.find((player) => player.id === state.turn!.playerId)!
+    : getTeam(state).players[getTeam(state).nextPlayer];
 export const totalScore = (team: Team) =>
   team.scores.reduce((sum, score) => sum + score, 0);
 export const normalizeWord = (text: string) => text.trim().replace(/\s+/g, " ");
@@ -161,8 +171,8 @@ export const setupIsValid = (state: GameState) =>
   state.teams.every(
     (team) =>
       team.name.trim().length > 0 &&
-      team.players.length >= 2 &&
-      team.players.every((player) => player.name.trim().length > 0),
+      getTeamPlayers(team).length >= 2 &&
+      getTeamPlayers(team).every((player) => player.name.trim().length > 0),
   );
 
 export const wordsAreValid = (words: string[], count: number) => {
@@ -182,7 +192,7 @@ export const collectWords = (state: GameState): Word[] =>
       id: `${player.id}:${index}`,
       playerId: player.id,
       text: normalizeWord(text),
-    })),
+    })).filter((word) => word.text.length > 0),
   );
 
 export const shuffle = <T>(items: T[], random = Math.random): T[] => {
@@ -203,7 +213,27 @@ const addScore = (state: GameState, amount: number, teamId = getTeam(state).id) 
   });
 
 const getPlayerTeam = (state: GameState, playerId: string | undefined) =>
-  state.teams.find((team) => team.players.some((player) => player.id === playerId));
+  state.teams.find((team) => getTeamPlayers(team).some((player) => player.id === playerId));
+
+const nextActivePlayer = (team: Team, start: number) => {
+  for (let offset = 0; offset < team.players.length; offset++) {
+    const index = (start + offset) % team.players.length;
+    if (team.players[index].active !== false) return index;
+  }
+  return 0;
+};
+
+const finishCollection = (state: GameState, order?: string[]): GameState => {
+  const words = collectWords(state);
+  return {
+    ...state,
+    stage: "round-intro",
+    collectionQueue: [],
+    words,
+    drafts: {},
+    deck: order ?? words.map((word) => word.id),
+  };
+};
 
 export const getTurnResults = (state: GameState): TurnResult[] =>
   state.turn?.results ??
@@ -309,6 +339,55 @@ const guessWord = (state: GameState, playerId?: string): GameState => {
 
 export const gameReducer = (state: GameState, action: Action): GameState => {
   if (action.type === "NEW_GAME") return action.state;
+  if (action.type === "SET_ROSTER" && state.stage !== "playing") {
+    const incoming = action.teams.flatMap((team) => team.players);
+    if (
+      action.teams.length !== state.teams.length ||
+      new Set(action.teams.map((team) => team.id)).size !== state.teams.length ||
+      new Set(incoming.map((player) => player.id)).size !== incoming.length ||
+      action.teams.some((team) => !state.teams.some((item) => item.id === team.id)) ||
+      incoming.some((player) => !player.id || !player.name.trim() || player.name.length > 40 || !avatarIds.includes(player.avatar) || player.active === false) ||
+      state.teams.some((team) => action.teams.some((other) => other.id !== team.id && other.players.some((player) => team.players.some((existing) => existing.id === player.id))))
+    ) return state;
+    const beforeCollection = state.stage === "teams" || state.stage === "settings";
+    const oldPlayers = new Set(getPlayers(state).map((player) => player.id));
+    const teams = state.teams.map((team) => {
+      const players = action.teams.find((item) => item.id === team.id)!.players;
+      const updated = {
+        ...team,
+        players: beforeCollection ? players : [
+          ...team.players.map((player) => {
+            const replacement = players.find((item) => item.id === player.id);
+            return replacement ? { ...replacement, active: true } : { ...player, active: false };
+          }),
+          ...players.filter((player) => !oldPlayers.has(player.id)),
+        ],
+      };
+      return { ...updated, nextPlayer: nextActivePlayer(updated, team.nextPlayer) };
+    });
+    let updated: GameState = { ...state, teams };
+    if (state.stage === "words" || state.stage === "word-handoff") {
+      const activeIds = new Set(teams.flatMap((team) => getTeamPlayers(team).map((player) => player.id)));
+      const queue = getCollectionQueue(state).filter((id) => activeIds.has(id));
+      const added = incoming.filter((player) => !oldPlayers.has(player.id));
+      queue.push(...added.map((player) => player.id));
+      updated = {
+        ...updated,
+        collectionQueue: queue,
+        drafts: {
+          ...state.drafts,
+          ...Object.fromEntries(added.map((player) => [player.id, Array<string>(state.settings.wordsPerPlayer).fill("")])),
+        },
+        stage: queue[0] === getCollectionQueue(state)[0] ? state.stage : "word-handoff",
+      };
+      if (!queue.length && collectWords(updated).length)
+        return finishCollection(updated, action.order);
+    }
+    if (state.stage === "paused" && state.turn &&
+      !getTeamPlayers(getTeam(updated)).some((player) => player.id === state.turn!.playerId))
+      return { ...expireTurn(updated), stage: "turn-summary" };
+    return updated;
+  }
   if (action.type === "TOGGLE_SOUND")
     return {
       ...state,
@@ -395,11 +474,13 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
       case "SET_SETTINGS":
         return { ...state, settings: { ...state.settings, ...action.patch } };
       case "BEGIN_WORDS":
+        if (!setupIsValid(state)) return state;
         return {
           ...state,
           stage: "word-handoff",
+          collectionQueue: state.teams.flatMap((team) => getTeamPlayers(team).map((player) => player.id)),
           drafts: Object.fromEntries(
-            getPlayers(state).map((player) => [
+            state.teams.flatMap(getTeamPlayers).map((player) => [
               player.id,
               Array<string>(state.settings.wordsPerPlayer).fill(""),
             ]),
@@ -407,10 +488,11 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
         };
     }
   }
-  if (action.type === "OPEN_WORDS" && state.stage === "word-handoff")
+  if (action.type === "OPEN_WORDS" && state.stage === "word-handoff" && setupIsValid(state) && getCollectionQueue(state).length)
     return { ...state, stage: "words" };
   if (action.type === "DRAFT_WORD" && state.stage === "words") {
-    const playerId = getPlayers(state)[state.collectionIndex].id;
+    const playerId = getCollectionQueue(state)[0];
+    if (!playerId) return state;
     return {
       ...state,
       drafts: {
@@ -422,31 +504,27 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
     };
   }
   if (action.type === "SUBMIT_WORDS" && state.stage === "words") {
-    const players = getPlayers(state);
+    if (!setupIsValid(state)) return state;
+    const queue = getCollectionQueue(state);
     if (
       !wordsAreValid(
-        state.drafts[players[state.collectionIndex].id],
+        state.drafts[queue[0]] ?? [],
         state.settings.wordsPerPlayer,
       )
     )
       return state;
-    if (state.collectionIndex < players.length - 1)
+    if (queue.length > 1)
       return {
         ...state,
         stage: "word-handoff",
         collectionIndex: state.collectionIndex + 1,
+        collectionQueue: queue.slice(1),
       };
-    return {
-      ...state,
-      stage: "round-intro",
-      words: collectWords(state),
-      drafts: {},
-      deck: action.order,
-    };
+    return finishCollection(state, action.order);
   }
-  if (action.type === "ACK_ROUND" && state.stage === "round-intro")
+  if (action.type === "ACK_ROUND" && state.stage === "round-intro" && setupIsValid(state))
     return { ...state, stage: "turn-handoff" };
-  if (action.type === "START_TURN" && state.stage === "turn-handoff")
+  if (action.type === "START_TURN" && state.stage === "turn-handoff" && setupIsValid(state))
     return {
       ...state,
       stage: "playing",
@@ -497,7 +575,7 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
         },
       };
   }
-  if (action.type === "RESUME" && state.stage === "paused" && state.turn)
+  if (action.type === "RESUME" && state.stage === "paused" && state.turn && setupIsValid(state))
     return {
       ...state,
       stage: "playing",
@@ -574,10 +652,10 @@ export const gameReducer = (state: GameState, action: Action): GameState => {
       },
     };
   }
-  if (action.type === "NEXT_TURN" && state.stage === "turn-summary") {
+  if (action.type === "NEXT_TURN" && state.stage === "turn-summary" && setupIsValid(state)) {
     const teams = state.teams.map((team, index) =>
       index === state.teamIndex
-        ? { ...team, nextPlayer: (team.nextPlayer + 1) % team.players.length }
+        ? { ...team, nextPlayer: nextActivePlayer(team, team.players.findIndex((player) => player.id === state.turn!.playerId) + 1) }
         : team,
     );
     const nextState = {

@@ -4,7 +4,7 @@ import {
   type ButtonHTMLAttributes,
   type ReactNode,
 } from "react";
-import { totalScore, type AvatarId, type Team } from "./game";
+import { getTeamPlayers, totalScore, type AvatarId, type Team } from "./game";
 
 export const Icon = ({
   name,
@@ -23,6 +23,7 @@ export const Icon = ({
     | "check"
     | "close"
     | "help"
+    | "edit"
     | "lock";
   size?: number;
 }) => {
@@ -51,6 +52,7 @@ export const Icon = ({
     play: <path d="m8 4 12 8-12 8z" />,
     check: <path d="m5 12 4 4L19 6" />,
     close: <path d="m6 6 12 12M18 6 6 18" />,
+    edit: <path d="m15 4 5 5M4 20l4-1L20 7a3.5 3.5 0 0 0-5-5L3 14l-1 6z" />,
     help: (
       <>
         <circle cx="12" cy="12" r="9" />
@@ -135,7 +137,7 @@ export const GuesserPicker = ({
     {teams.map((team) => (
       <section className="guesser-team" key={team.id}>
         <h3>{team.name}</h3>
-        {team.players.map((player) => (
+        {getTeamPlayers(team).map((player) => (
           <Button
             key={player.id}
             variant="secondary"

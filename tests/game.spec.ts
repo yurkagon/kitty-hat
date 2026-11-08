@@ -88,6 +88,109 @@ const start = async (page: Page) => {
   await page.getByRole("button", { name: "Почати хід" }).click();
 };
 
+const openRoster = (page: Page) => page.locator("header").getByRole("button", { name: "Редагувати склад команд" }).click();
+const savedParty = (page: Page) => page.evaluate(() => JSON.parse(localStorage.getItem("hat.game.v1")!));
+const addRosterPlayer = async (page: Page, team: number, name: string) => {
+  await page.getByRole("dialog").getByRole("button", { name: `Додати гравця в команду ${team}`, exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Хлопець", exact: true }).click();
+  await page.getByRole("dialog").locator(".team-editor").nth(team - 1).locator("input").last().fill(name);
+};
+
+test("roster changes preserve a private draft and append newcomers to word collection", async ({ page }) => {
+  await configure(page);
+  await page.getByRole("button", { name: "Це я, почнімо" }).click();
+  await page.getByRole("textbox", { name: "Записка 1", exact: true }).fill("Лис");
+  await openRoster(page);
+  const dialog = page.getByRole("dialog", { name: "Склад команд", exact: true });
+  await expect(dialog.getByRole("textbox", { name: /Назва команди/ })).toHaveCount(0);
+  await expect(dialog.getByRole("button", { name: "Додати команду", exact: true })).toHaveCount(0);
+  await dialog.getByRole("button", { name: "Видалити гравця 2, команда 1", exact: true }).click();
+  await addRosterPlayer(page, 1, "Новачок");
+  await dialog.getByRole("textbox", { name: "Ім’я гравця 1, команда 1", exact: true }).fill("Оля нова");
+  await dialog.getByRole("button", { name: "Змінити аватар гравця 1, команда 1", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Дівчина", exact: true }).click();
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: `test-results/roster-${width}.png`, fullPage: true });
+  }
+  await dialog.getByRole("button", { name: "Зберегти склад" }).click();
+  await page.getByRole("button", { name: "Телефон у мене" }).click();
+  await expect(page.getByRole("textbox", { name: "Записка 1", exact: true })).toHaveValue("Лис");
+  await page.getByRole("button", { name: "Сховати в капелюх" }).click();
+  for (const [name, word] of [["Іра", "Кіт"], ["Марко", "Пес"], ["Новачок", "Риба"]]) {
+    await expect(page.locator(".player-name")).toHaveText(name);
+    await page.getByRole("button", { name: "Це я, почнімо" }).click();
+    await page.getByRole("textbox", { name: "Записка 1", exact: true }).fill(word);
+    await page.getByRole("button", { name: "Сховати в капелюх" }).click();
+  }
+  await expect(page.getByRole("button", { name: "Усе зрозуміло" })).toBeVisible();
+  const state = await savedParty(page);
+  expect(state.words).toHaveLength(4);
+  expect(state.teams[0].players[0]).toMatchObject({ name: "Оля нова", avatar: "cat-generic-woman.webp" });
+  expect(state.teams[0].players.find((player: { name: string }) => player.name === "Юра").active).toBe(false);
+  await page.reload();
+  await page.getByRole("button", { name: "Продовжити гру", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Усе зрозуміло" })).toBeVisible();
+});
+
+test("opening the roster pauses a turn, cancellation discards edits and a late join adds no words", async ({ page }) => {
+  await configure(page);
+  await enterWords(page);
+  await page.clock.install();
+  await start(page);
+  await page.getByRole("button", { name: /Вгадано/ }).click();
+  await page.clock.fastForward(3000);
+  await openRoster(page);
+  const before = await savedParty(page);
+  expect(before.stage).toBe("paused");
+  await page.getByRole("dialog").getByRole("textbox", { name: "Ім’я гравця 1, команда 1", exact: true }).fill("Discard this");
+  await page.getByRole("dialog").getByRole("button", { name: "Закрити", exact: true }).click();
+  expect((await savedParty(page)).teams).toEqual(before.teams);
+  await openRoster(page);
+  await addRosterPlayer(page, 2, "Новачок");
+  await page.getByRole("dialog").getByRole("button", { name: "Зберегти склад" }).click();
+  const after = await savedParty(page);
+  expect(after.words).toEqual(before.words);
+  expect(after.deck).toEqual(before.deck);
+  expect(after.turn).toEqual(before.turn);
+  expect(after.teams[1].players).toHaveLength(3);
+  await page.clock.fastForward(60000);
+  await page.getByRole("button", { name: "Телефон у мене" }).click();
+  await page.getByRole("button", { name: "Продовжити хід" }).click();
+  await expect(page.getByRole("timer")).toHaveAttribute("aria-label", "Залишилось 12 секунд");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("a departing explainer ends the turn and an incomplete roster survives reload until repaired", async ({ page }) => {
+  await configure(page, "strict");
+  await enterWords(page);
+  await start(page);
+  await page.getByRole("button", { name: /Вгадано/ }).click();
+  await openRoster(page);
+  await page.getByRole("dialog").getByRole("button", { name: "Видалити гравця 1, команда 1", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Зберегти склад" }).click();
+  await expect(page.getByRole("heading", { name: "Потрібні гравці" })).toBeVisible();
+  const departed = await savedParty(page);
+  expect(departed.stage).toBe("turn-summary");
+  expect(departed.teams[0].scores[0]).toBe(1);
+  await page.reload();
+  await page.getByRole("button", { name: "Продовжити гру", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Потрібні гравці" })).toBeVisible();
+  await openRoster(page);
+  await addRosterPlayer(page, 1, "Заміна");
+  await page.getByRole("dialog").getByRole("button", { name: "Зберегти склад" }).click();
+  await expect(page.locator(".turn-results")).toBeVisible();
+  await page.getByRole("button", { name: "Наступна команда" }).click();
+  const saved = await savedParty(page);
+  expect(saved.history[0].playerId).toBe(departed.turn.playerId);
+  expect(saved.history[0].results[0].status).toBe("guessed");
+  expect(saved.words).toEqual(departed.words);
+  await page.getByRole("button", { name: "Почати хід" }).click();
+  await expect(page.locator(".word-slip")).toBeVisible();
+});
+
 test("complete party, three rounds, results and replay", async ({ page }) => {
   await configure(page);
   await enterWords(page);
@@ -627,9 +730,9 @@ test("avatar picker sorts by first name then surname and groups by first name wh
   const choices = dialog.locator(".person-options button");
   await expect(choices).toHaveText([
     "Хлопець", "Дівчина", "Андрій", "Андрій", "Аня", "Артур", "Богдан", "Валерія", "Валерія", "Віка", "Віталік", "Вова", "Володимир",
-    "Даня", "Діма", "Еля", "Емі", "Єгор", "Ігор", "Ігор", "Ілона", "Ілона", "Катя", "Квітка", "Кирил", "Левко", "Лі", "Льоша",
+    "Даня", "Діана", "Діма", "Еля", "Емі", "Єгор", "Ігор", "Ігор", "Ілона", "Ілона", "Катя", "Квітка", "Кирил", "Левко", "Лі", "Льоша",
     "Марта", "Маша", "Мілана", "Назар", "Настя", "Настя", "Наталя", "Наталя", "Ніка", "Ніка", "Нікіта", "Олена", "Роберт", "Розалія",
-    "Сандра", "Саша", "Семен", "Софія", "Тоня", "Юра", "Юра", "Ярік",
+    "Сандра", "Саша", "Семен", "Софія", "Софія", "Тоня", "Юра", "Юра", "Ярік",
   ]);
   await expect(choices.nth(2)).toHaveAttribute("aria-label", "Андрій, аватар 5");
   await expect(choices.nth(3)).toHaveAttribute("aria-label", "Андрій, аватар 18");
